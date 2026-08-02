@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { MapPinIcon, PhoneIcon } from "@/components/ui/icons";
 import { useReveal } from "@/hooks/use-reveal";
 import { useI18n } from "@/i18n/i18n-provider";
 
@@ -21,12 +22,21 @@ export function SiteFooter() {
       <div className="shell grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] gap-8 px-8 pt-14 pb-7 max-lg:grid-cols-2 max-sm:grid-cols-1">
         <div>
           <div className="mb-3 flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-full bg-white font-black text-ink-strong">
-              D
-            </span>
-            <span className="text-base font-extrabold text-white">D COMPUTER</span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
+            <img src="/logo-d-tech.png" alt={t.companyName} className="h-9 w-auto" />
+            <span className="text-base font-extrabold text-white">{t.companyName}</span>
           </div>
           <p className="text-[12.5px] leading-relaxed">{t.tagline}</p>
+          <div className="mt-4 flex flex-col gap-2 text-[12.5px] opacity-85">
+            <span className="flex items-start gap-2">
+              <MapPinIcon className="mt-0.5 flex-none" />
+              {t.address}
+            </span>
+            <a href={`tel:${t.phone.replace(/-/g, "")}`} className="flex items-center gap-2 transition hover:text-accent hover:opacity-100">
+              <PhoneIcon className="flex-none" />
+              {t.phone}
+            </a>
+          </div>
           <div className="mt-[18px] flex gap-3">
             {SOCIALS.map((social) => (
               <button

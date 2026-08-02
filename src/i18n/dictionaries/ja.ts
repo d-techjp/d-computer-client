@@ -11,6 +11,9 @@ const ja = {
   ],
   contact: "お問い合わせ",
   about: "会社概要",
+  companyName: "ディーテック株式会社",
+  address: "大阪市西成区玉出東１－３－１６ ドエル１番館103号",
+  phone: "080-6473-2260",
   tagline: "パフォーマンスで、体験を変える。",
   navItems: [
     "ホーム",
@@ -39,7 +42,7 @@ const ja = {
     "用途やご予算に合わせて、最適な構成をご提案。パーツの変更やこだわりの構成も自由自在。",
   customCta: "カスタムPCを相談する",
   blogTitle: "お知らせ・ブログ",
-  copyright: "© 2026 D COMPUTER All Rights Reserved.",
+  copyright: "© 2026 ディーテック株式会社 All Rights Reserved.",
   cartTitle: "カート",
   cartItemsUnit: "点",
   cartQty: "数量:",

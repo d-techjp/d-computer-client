@@ -12,6 +12,9 @@ const vi: typeof ja = {
   ],
   contact: "Liên hệ",
   about: "Giới thiệu",
+  companyName: "D-TECH",
+  address: "大阪市西成区玉出東１－３－１６ ドエル１番館103号",
+  phone: "080-6473-2260",
   tagline: "Hiệu năng đỉnh cao, trải nghiệm khác biệt.",
   navItems: [
     "Trang chủ",
@@ -43,7 +46,7 @@ const vi: typeof ja = {
     "Tư vấn cấu hình theo nhu cầu và ngân sách của bạn. Có thể tùy chỉnh linh kiện và cấu hình tự do.",
   customCta: "Tư vấn PC theo yêu cầu",
   blogTitle: "Tin tức · Blog",
-  copyright: "© 2026 D COMPUTER. Bảo lưu mọi quyền.",
+  copyright: "© 2026 D-TECH. Bảo lưu mọi quyền.",
   cartTitle: "Giỏ hàng",
   cartItemsUnit: "sản phẩm",
   cartQty: "SL:",

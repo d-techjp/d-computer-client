@@ -45,6 +45,34 @@ export function UserIcon(props: IconProps) {
   );
 }
 
+export function PhoneIcon(props: IconProps) {
+  return (
+    <svg width={14} height={14} {...base(props)}>
+      <path
+        d="M5 3h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function MapPinIcon(props: IconProps) {
+  return (
+    <svg width={14} height={14} {...base(props)}>
+      <path
+        d="M12 21s7-6.8 7-12a7 7 0 0 0-14 0c0 5.2 7 12 7 12z"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <circle cx={12} cy={9} r={2.5} stroke="currentColor" strokeWidth={2} />
+    </svg>
+  );
+}
+
 export function CartIcon(props: IconProps) {
   return (
     <svg width={20} height={20} {...base(props)}>

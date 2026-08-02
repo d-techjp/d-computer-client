@@ -17,12 +17,11 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
     <header className="sticky top-0 z-50 border-b border-line bg-surface">
       <div className="shell flex flex-nowrap items-center gap-4 px-8 py-3.5">
         <Link href={`/${locale}`} className="flex flex-none items-center gap-3">
-          <span className="flex size-12 flex-none items-center justify-center rounded-full bg-ink-strong text-xl font-black text-white">
-            D
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
+          <img src="/logo-d-tech.png" alt={t.companyName} className="h-11 w-auto flex-none" />
           <span>
-            <span className="block text-[19px] font-black tracking-[0.5px] whitespace-nowrap">
-              D COMPUTER
+            <span className="block text-[17px] font-black tracking-[0.5px] whitespace-nowrap">
+              {t.companyName}
             </span>
             <span className="block text-[11px] whitespace-nowrap text-ink-subtle">{t.tagline}</span>
           </span>

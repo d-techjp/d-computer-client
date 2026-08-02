@@ -46,15 +46,20 @@ export async function generateMetadata({
   const t = await getDictionary(locale);
 
   return {
-    title: { default: "D COMPUTER", template: "%s | D COMPUTER" },
+    title: { default: t.companyName, template: `%s | ${t.companyName}` },
     description: t.tagline,
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
     alternates: {
       canonical: `/${locale}`,
       languages: Object.fromEntries(LOCALES.map((item) => [item, `/${item}`])),
     },
+    icons: {
+      icon: [{ url: "/logo-d-tech.png", type: "image/png" }],
+      shortcut: [{ url: "/logo-d-tech.png", type: "image/png" }],
+      apple: [{ url: "/logo-d-tech.png", type: "image/png" }],
+    },
     openGraph: {
-      title: "D COMPUTER",
+      title: t.companyName,
       description: t.tagline,
       locale,
       type: "website",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PhoneIcon } from "@/components/ui/icons";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
 
@@ -19,6 +20,13 @@ export function Topbar({ t, locale }: { t: Dictionary; locale: Locale }) {
           ))}
         </div>
         <div className="flex items-center gap-[18px]">
+          <a
+            href={`tel:${t.phone.replace(/-/g, "")}`}
+            className="flex items-center gap-1.5 opacity-85 transition-opacity hover:opacity-100"
+          >
+            <PhoneIcon />
+            {t.phone}
+          </a>
           <Link href={`/${locale}`} className="opacity-85 transition-opacity hover:opacity-100">
             {t.contact}
           </Link>
