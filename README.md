@@ -1,6 +1,6 @@
 # D COMPUTER
 
-Storefront Next.js được convert từ `d-computer.html` (một bundled artifact 28MB dùng React 18 UMD + custom template runtime `x-dc`).
+Storefront Next.js được convert từ `d-computer-client.html` (một bundled artifact 28MB dùng React 18 UMD + custom template runtime `x-dc`).
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Zustand 5 · Axios · Zod
 

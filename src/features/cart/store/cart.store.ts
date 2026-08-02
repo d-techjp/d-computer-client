@@ -114,7 +114,7 @@ export const useCartStore = create<CartStore>()(
       clear: () => set({ lines: [] }),
     }),
     {
-      name: "d-computer.cart",
+      name: "d-computer-client.cart",
       storage: createJSONStorage(() => localStorage),
       version: 1,
       // Actions are recreated on every load; only data belongs in storage.
