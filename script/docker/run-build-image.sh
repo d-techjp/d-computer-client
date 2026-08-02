@@ -6,7 +6,7 @@ DOCKER_FILE=Dockerfile
 
 IMAGE_NAME=hthouse
 
-IMAGE_TAG=d-computer-client-client-1.0
+IMAGE_TAG=d-computer-client-1.0
 
 DOCKER_HUB=tranhuuphuoc22
 
