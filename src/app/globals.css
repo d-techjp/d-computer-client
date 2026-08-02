@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * Design tokens.
+ * The original page hard-coded oklch() literals into ~200 inline styles.
+ * Naming them here makes them the single source of truth: Tailwind generates
+ * `bg-canvas`, `text-ink-muted`, `border-line`, … from these automatically.
+ * ------------------------------------------------------------------------ */
+@theme {
+  --color-canvas: oklch(98% 0.005 90);
+  --color-surface: oklch(99% 0.003 90);
+  --color-mist: oklch(96% 0.005 90);
+  --color-mist-soft: oklch(97% 0.005 90);
+
+  --color-ink: oklch(18% 0.01 260);
+  --color-ink-strong: oklch(15% 0.01 260);
+  --color-ink-body: oklch(30% 0.01 260);
+  --color-ink-muted: oklch(45% 0.01 260);
+  --color-ink-subtle: oklch(50% 0.01 260);
+  --color-ink-faint: oklch(60% 0.01 260);
+  --color-ink-invert: oklch(75% 0.01 260);
+  --color-ink-invert-strong: oklch(85% 0.01 260);
+
+  --color-accent: oklch(55% 0.18 25);
+  --color-sakura: oklch(85% 0.07 350);
+
+  --color-line: oklch(90% 0.005 90);
+  --color-line-soft: oklch(93% 0.005 90);
+  --color-line-faint: oklch(94% 0.005 90);
+  --color-line-strong: oklch(85% 0.005 90);
+  --color-line-invert: oklch(25% 0.01 260);
+
+  --shadow-card: 0 6px 18px oklch(15% 0.01 260 / 0.06);
+  --shadow-card-hover: 0 16px 28px oklch(15% 0.01 260 / 0.12);
+  --shadow-lift: 0 20px 34px oklch(15% 0.01 260 / 0.12);
+  --shadow-pop: 0 24px 48px oklch(15% 0.01 260 / 0.2);
+  --shadow-menu: 0 12px 28px oklch(15% 0.01 260 / 0.25);
+
+  --font-sans: var(--font-noto-sans), var(--font-noto-sans-jp), sans-serif;
+
+  --container-shell: 1400px;
+
+  --animate-fade-in-up: fade-in-up 0.7s ease-out both;
+  --animate-drift: drift 9s ease-in-out infinite alternate;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes drift {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    100% {
+      transform: translate(-16px, 10px) rotate(6deg);
+    }
+  }
+
+  @keyframes petal-fall {
+    0% {
+      transform: translateY(-60px) translateX(0) rotate(0deg);
+      opacity: 0;
+    }
+    6% {
+      opacity: 0.85;
+    }
+    25% {
+      transform: translateY(26vh) translateX(24px) rotate(70deg);
+    }
+    50% {
+      transform: translateY(52vh) translateX(-16px) rotate(150deg);
+    }
+    75% {
+      transform: translateY(78vh) translateX(20px) rotate(230deg);
+    }
+    90% {
+      opacity: 0.85;
+    }
+    100% {
+      transform: translateY(105vh) translateX(0) rotate(300deg);
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  /* The design is a fixed 1400px desktop layout; the sections below opt into
+     responsive behaviour individually rather than the body scrolling sideways. */
+  ::selection {
+    background-color: color-mix(in oklch, var(--color-accent) 22%, transparent);
+  }
+}
+
+@utility shell {
+  margin-inline: auto;
+  max-width: var(--container-shell);
+  width: 100%;
+}
+
+/* Sections fade up on first scroll into view. `useReveal` flips data-revealed. */
+@utility reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+
+  &[data-revealed="true"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Reveal sections start hidden and are shown by JS. Under reduced motion —
+     and as a safety net if IntersectionObserver never fires — show them
+     unconditionally rather than leaving content invisible. */
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

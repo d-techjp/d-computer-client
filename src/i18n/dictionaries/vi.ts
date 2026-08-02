@@ -1,0 +1,129 @@
+import type ja from "./ja";
+
+/**
+ * Typed against the `ja` dictionary, so a key added there but forgotten here is
+ * a compile error rather than a blank string in production.
+ */
+const vi: typeof ja = {
+  topbarItems: [
+    "Giao hàng toàn quốc · Nhận hàng nhanh nhất",
+    "Kiểm tra vận hành kỹ càng",
+    "Tư vấn cấu hình miễn phí",
+  ],
+  contact: "Liên hệ",
+  about: "Giới thiệu",
+  tagline: "Hiệu năng đỉnh cao, trải nghiệm khác biệt.",
+  navItems: [
+    "Trang chủ",
+    "Sản phẩm",
+    "PC theo yêu cầu",
+    "Hướng dẫn",
+    "Hỗ trợ",
+    "Blog",
+  ],
+  searchPlaceholder: "Tìm sản phẩm...",
+  searchEmpty: "Không tìm thấy sản phẩm phù hợp",
+  searchError: "Tìm kiếm thất bại. Vui lòng thử lại.",
+  login: "Đăng nhập",
+  heroKicker: "D COMPUTER",
+  heroTitle1: "Chiếc PC này,",
+  heroTitle2: "sẽ",
+  heroAccent: "thay đổi",
+  // Leading space is intentional: it follows `heroAccent` inline, and the
+  // Japanese copy ends in "。" which must *not* have one.
+  heroTitle3: " thế giới của bạn.",
+  heroDesc:
+    "Linh kiện chất lượng cao cùng kỹ thuật lắp ráp chuẩn xác, mang đến hiệu năng tối ưu cho mọi trải nghiệm.",
+  heroCta: "Xem sản phẩm",
+  productsTitle: "PC nổi bật",
+  viewAll: "Xem tất cả",
+  customTitle1: "Chiếc PC của riêng bạn.",
+  customTitle2: "PC theo yêu cầu",
+  customDesc:
+    "Tư vấn cấu hình theo nhu cầu và ngân sách của bạn. Có thể tùy chỉnh linh kiện và cấu hình tự do.",
+  customCta: "Tư vấn PC theo yêu cầu",
+  blogTitle: "Tin tức · Blog",
+  copyright: "© 2026 D COMPUTER. Bảo lưu mọi quyền.",
+  cartTitle: "Giỏ hàng",
+  cartItemsUnit: "sản phẩm",
+  cartQty: "SL:",
+  cartSubtotal: "Tạm tính",
+  cartCheckout: "Thanh toán",
+  cartEmpty: "Giỏ hàng của bạn đang trống",
+  cartRemove: "Xoá",
+  cartIncrease: "Tăng số lượng",
+  cartDecrease: "Giảm số lượng",
+  detailSpecs: "Cấu hình chi tiết",
+  detailAddToCart: "Thêm vào giỏ hàng",
+  detailBack: "Quay lại danh sách",
+  specShowAll: "Xem đầy đủ thông số kỹ thuật",
+  specShowLess: "Thu gọn",
+  notFoundTitle: "Không tìm thấy trang",
+  notFoundDesc: "Trang bạn tìm có thể đã được di chuyển hoặc xoá.",
+  errorTitle: "Đã xảy ra lỗi",
+  errorDesc: "Vui lòng thử lại sau ít phút.",
+  errorRetry: "Thử lại",
+  sideBadges: [
+    { title: "Bảo hành an tâm 6 tháng", sub: "Yên tâm sử dụng lâu dài" },
+    { title: "Giao hàng toàn quốc", sub: "Nhận hàng nhanh nhất" },
+    { title: "Hỗ trợ 365 ngày", sub: "Luôn sẵn sàng hỗ trợ bạn" },
+    { title: "Đa dạng thanh toán", sub: "Hỗ trợ trả góp" },
+  ],
+  trustItems: [
+    {
+      title: "Chỉ dùng linh kiện chất lượng",
+      sub: "Chọn lọc từ thương hiệu uy tín",
+    },
+    { title: "Kiểm tra vận hành kỹ càng", sub: "Test tải trước khi xuất xưởng" },
+    { title: "Tùy chỉnh tự do", sub: "Cấu hình tối ưu theo nhu cầu" },
+    { title: "Hỗ trợ tận tâm", sub: "Đồng hành sau khi mua hàng" },
+  ],
+  steps: [
+    {
+      title: "Chọn mục đích",
+      sub: "Gaming / Livestream / Creative / Văn phòng",
+    },
+    {
+      title: "Xác định ngân sách",
+      sub: "Đề xuất cấu hình theo ngân sách mong muốn",
+    },
+    {
+      title: "Tùy chỉnh cấu hình",
+      sub: "Thay đổi linh kiện, thêm tùy chọn tự do",
+    },
+  ],
+  footerColumns: [
+    {
+      title: "Sản phẩm · Dịch vụ",
+      links: [
+        "Danh sách sản phẩm",
+        "PC theo yêu cầu",
+        "Danh sách linh kiện",
+        "Chương trình khuyến mãi",
+      ],
+    },
+    {
+      title: "Hướng dẫn",
+      links: [
+        "Phương thức thanh toán",
+        "Vận chuyển",
+        "Đổi trả",
+        "Câu hỏi thường gặp",
+      ],
+    },
+    {
+      title: "Hỗ trợ",
+      links: ["Liên hệ", "Bảo hành", "Thông tin hỗ trợ", "Tải driver"],
+    },
+    {
+      title: "Công ty",
+      links: [
+        "Giới thiệu công ty",
+        "Chính sách đặc thù",
+        "Chính sách bảo mật",
+      ],
+    },
+  ],
+};
+
+export default vi;
