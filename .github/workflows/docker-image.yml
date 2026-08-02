@@ -42,6 +42,6 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             cd /var/www/d-computer-client 
-            docker compose pull d-computer-client-client
-            docker compose up -d d-computer-client-client
+            docker compose pull d-computer-client
+            docker compose up -d d-computer-client
             docker image prune -f
