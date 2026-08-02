@@ -1,0 +1,16 @@
+services:
+  d-computer-client:
+    platform: linux/amd64
+    image: tranhuuphuoc22/hthouse:d-computer-client-1.0
+    container_name: d-computer-client
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    expose:
+      - "4000"
+    networks:
+      - rampo-dev
+
+networks:
+  rampo-dev:
+    external: true
