@@ -22,7 +22,10 @@ export function FeaturedProducts({
         action={t.viewAll}
         actionHref={`/${locale}/products`}
       />
-      <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-[420px]:grid-cols-1 md:gap-[22px]">
+      {/* Mobile-first min-width cascade — mixing this with a `max-lg:` override
+          put two conflicting max-width rules at equal specificity, and
+          Tailwind's generated order let the wider one win under 420px. */}
+      <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 md:gap-[22px] lg:grid-cols-4">
         {products.map((product, index) => (
           <ProductCard
             key={product.slug}

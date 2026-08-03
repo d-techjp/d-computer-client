@@ -40,8 +40,16 @@
 
   --container-shell: 1400px;
 
+  /* One extra breakpoint below `sm` (640px), for the point where a two-up
+     product grid stops being cramped on a phone. Arbitrary variants like
+     `min-[420px]:` silently fail to compile with this Tailwind/PostCSS setup
+     (verified: absent from the generated CSS wherever they were tried) — a
+     named `--breakpoint-*` token is the mechanism that is actually supported. */
+  --breakpoint-xs: 26.25rem; /* 420px */
+
   --animate-fade-in-up: fade-in-up 0.7s ease-out both;
   --animate-drift: drift 9s ease-in-out infinite alternate;
+  --animate-slide-up: slide-up 0.25s ease-out both;
 
   @keyframes fade-in-up {
     from {
@@ -50,6 +58,17 @@
     }
     to {
       opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* The mobile cart sheet's entrance — rises from the bottom edge instead of
+     fading, so it reads as a physical sheet rather than a repositioned dropdown. */
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
       transform: translateY(0);
     }
   }

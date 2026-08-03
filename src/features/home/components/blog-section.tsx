@@ -20,7 +20,7 @@ export function BlogSection({
   return (
     <RevealSection className="shell py-12 md:py-16">
       <SectionHeading title={t.blogTitle} action={t.viewAll} actionHref={`/${locale}`} />
-      <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-[420px]:grid-cols-1 md:gap-[22px]">
+      <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 md:gap-[22px] lg:grid-cols-4">
         {posts.map((post) => (
           <Link
             key={post.slug}

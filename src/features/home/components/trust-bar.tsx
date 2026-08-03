@@ -6,7 +6,7 @@ import { RevealSection } from "./reveal-section";
 export function TrustBar({ t }: { t: Dictionary }) {
   return (
     <RevealSection className="border-y border-line">
-      <div className="shell grid grid-cols-1 gap-5 py-7 min-[420px]:grid-cols-2 md:gap-6 md:py-9 lg:grid-cols-4">
+      <div className="shell grid grid-cols-1 gap-5 py-7 xs:grid-cols-2 md:gap-6 md:py-9 lg:grid-cols-4">
         {t.trustItems.map((item, index) => {
           const Icon = TRUST_ICONS[index];
 

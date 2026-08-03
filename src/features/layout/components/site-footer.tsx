@@ -20,7 +20,7 @@ export function SiteFooter() {
       data-revealed={revealed}
       className="reveal bg-ink-strong text-ink-invert"
     >
-      <div className="shell grid grid-cols-1 gap-8 pt-12 pb-7 min-[420px]:grid-cols-2 md:pt-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+      <div className="shell grid grid-cols-1 gap-8 pt-12 pb-7 xs:grid-cols-2 md:pt-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
         <div>
           <div className="mb-3 flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
