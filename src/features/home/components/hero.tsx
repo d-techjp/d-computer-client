@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { BlossomCluster } from "@/components/ui/icons";
 import { BADGE_ICONS } from "@/config/glyphs";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -26,7 +27,7 @@ const PETALS = [
 ];
 
 export function Hero() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const { index, phase, goTo } = useHeroCarousel(SLIDES.length);
 
   const hidden = phase === "out" || phase === "parked";
@@ -63,7 +64,7 @@ export function Hero() {
           ))}
         </div>
 
-        <div className="relative z-10 flex min-h-[460px] items-center px-10 py-14">
+        <div className="relative z-10 flex min-h-[380px] items-center px-4 py-12 md:min-h-[460px] md:px-10 md:py-14">
           <div
             className="pointer-events-none absolute top-[-20px] left-[-60px] z-10 size-[220px] animate-drift opacity-50"
             aria-hidden
@@ -75,18 +76,24 @@ export function Hero() {
             <p className="mb-3.5 animate-fade-in-up text-[13px] font-bold tracking-[2px] text-accent">
               {t.heroKicker}
             </p>
-            <h1 className="mb-5 animate-fade-in-up text-[52px] leading-[1.15] font-black [animation-delay:0.1s] max-md:text-[36px]">
+            <h1 className="mb-5 animate-fade-in-up text-[30px] leading-[1.15] font-black [animation-delay:0.1s] sm:text-[36px] lg:text-[52px]">
               {t.heroTitle1}
               <br />
               {t.heroTitle2} <span className="text-accent">{t.heroAccent}</span>
               {t.heroTitle3}
             </h1>
-            <p className="mb-7 max-w-[440px] animate-fade-in-up text-base leading-[1.7] text-ink-muted [animation-delay:0.2s]">
+            <p className="mb-7 max-w-[440px] animate-fade-in-up text-[14.5px] leading-[1.7] text-ink-muted [animation-delay:0.2s] md:text-base">
               {t.heroDesc}
             </p>
-            <Button size="lg" className="animate-fade-in-up [animation-delay:0.3s]">
+            <Link
+              href={`/${locale}/products`}
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "animate-fade-in-up [animation-delay:0.3s]",
+              )}
+            >
               {t.heroCta} <span aria-hidden>→</span>
-            </Button>
+            </Link>
           </div>
         </div>
 
@@ -136,7 +143,9 @@ export function Hero() {
         </div>
       </div>
 
-      <aside className="flex min-w-[180px] flex-1 flex-col justify-between gap-2 p-4 max-lg:flex-row max-lg:flex-wrap">
+      {/* Stacked beside the hero on desktop; below `lg` it becomes a two-up
+          grid rather than four boxes squeezed into one row. */}
+      <aside className="flex flex-1 flex-col justify-between gap-2 p-4 max-lg:grid max-lg:grid-cols-2 max-lg:pt-0 lg:min-w-[180px]">
         {t.sideBadges.map((badge, badgeIndex) => {
           const Icon = BADGE_ICONS[badgeIndex];
 

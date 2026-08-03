@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { MapPinIcon, PhoneIcon } from "@/components/ui/icons";
+import { footerHref } from "@/config/nav";
 import { useReveal } from "@/hooks/use-reveal";
 import { useI18n } from "@/i18n/i18n-provider";
 
@@ -19,7 +20,7 @@ export function SiteFooter() {
       data-revealed={revealed}
       className="reveal bg-ink-strong text-ink-invert"
     >
-      <div className="shell grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] gap-8 px-8 pt-14 pb-7 max-lg:grid-cols-2 max-sm:grid-cols-1">
+      <div className="shell grid grid-cols-1 gap-8 pt-12 pb-7 min-[420px]:grid-cols-2 md:pt-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
         <div>
           <div className="mb-3 flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
@@ -51,14 +52,14 @@ export function SiteFooter() {
           </div>
         </div>
 
-        {t.footerColumns.map((column) => (
+        {t.footerColumns.map((column, columnIndex) => (
           <div key={column.title}>
             <h3 className="mb-3.5 text-sm font-bold text-white">{column.title}</h3>
             <div className="flex flex-col gap-2.5 text-[13px]">
-              {column.links.map((link) => (
+              {column.links.map((link, linkIndex) => (
                 <Link
                   key={link}
-                  href={`/${locale}`}
+                  href={footerHref(locale, columnIndex, linkIndex)}
                   className="opacity-85 transition hover:text-accent hover:opacity-100"
                 >
                   {link}
@@ -69,7 +70,7 @@ export function SiteFooter() {
         ))}
       </div>
 
-      <div className="shell flex flex-wrap items-center justify-between gap-2.5 border-t border-line-invert px-8 py-5 text-xs">
+      <div className="shell flex flex-wrap items-center justify-between gap-2.5 border-t border-line-invert py-5 text-xs">
         <span>{t.copyright}</span>
         <div className="flex gap-2">
           {PAYMENTS.map((payment) => (

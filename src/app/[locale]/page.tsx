@@ -26,7 +26,8 @@ export default async function HomePage({
   // Independent reads run concurrently instead of serialising into a waterfall.
   const [t, products, posts] = await Promise.all([
     getDictionary(locale),
-    listProducts(locale),
+    // The home page shows a shortlist; the full catalogue lives at /products.
+    listProducts(locale, { limit: 4 }),
     listPosts(locale),
   ]);
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CATEGORIES, CPU_BRANDS, GPU_TIERS, RAM_OPTIONS } from "../filters";
 import type { Product } from "../types";
 
 /**
@@ -11,6 +12,14 @@ import type { Product } from "../types";
 export const specRowSchema = z.object({
   label: z.string(),
   value: z.string(),
+});
+
+export const productAttributesSchema = z.object({
+  category: z.enum(CATEGORIES),
+  cpuBrand: z.enum(CPU_BRANDS),
+  gpu: z.enum(GPU_TIERS),
+  ram: z.enum(RAM_OPTIONS),
+  storageGb: z.number(),
 });
 
 export const productSchema = z.object({
@@ -25,6 +34,7 @@ export const productSchema = z.object({
   salePrice: z.number(),
   discountPercent: z.number(),
   specTable: z.array(specRowSchema),
+  attributes: productAttributesSchema,
   priceBook: z.object({ ja: z.number(), vi: z.number() }),
 });
 

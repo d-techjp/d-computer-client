@@ -61,7 +61,7 @@ export function CartMenu() {
       </button>
 
       {open ? (
-        <div className="absolute top-[calc(100%+14px)] -right-2 z-60 w-[340px] animate-fade-in-up overflow-hidden rounded-2xl border border-line-soft bg-white shadow-pop">
+        <div className="absolute top-[calc(100%+14px)] -right-2 z-60 w-[min(90vw,340px)] animate-fade-in-up overflow-hidden rounded-2xl border border-line-soft bg-white shadow-pop">
           <header className="flex items-center justify-between border-b border-line-faint px-5 pt-[18px] pb-3.5">
             <span className="text-[15px] font-extrabold">{t.cartTitle}</span>
             <span className="rounded-full bg-mist px-2.5 py-[3px] text-xs text-ink-subtle">

@@ -16,9 +16,13 @@ export function FeaturedProducts({
   t: Dictionary;
 }) {
   return (
-    <RevealSection className="shell px-8 py-16">
-      <SectionHeading title={t.productsTitle} action={t.viewAll} actionHref={`/${locale}`} />
-      <div className="grid grid-cols-4 gap-[22px] max-lg:grid-cols-2 max-sm:grid-cols-1">
+    <RevealSection className="shell py-12 md:py-16">
+      <SectionHeading
+        title={t.productsTitle}
+        action={t.viewAll}
+        actionHref={`/${locale}/products`}
+      />
+      <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-[420px]:grid-cols-1 md:gap-[22px]">
         {products.map((product, index) => (
           <ProductCard
             key={product.slug}

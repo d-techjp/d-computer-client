@@ -101,17 +101,24 @@
     font-family: var(--font-sans);
   }
 
-  /* The design is a fixed 1400px desktop layout; the sections below opt into
-     responsive behaviour individually rather than the body scrolling sideways. */
   ::selection {
     background-color: color-mix(in oklch, var(--color-accent) 22%, transparent);
   }
 }
 
+/* Centred page container *and* the page gutter. Carrying the horizontal padding
+   here rather than as a `px-8` at each call site means the gutter narrows on
+   phones everywhere at once — it was the one value a new section could get
+   wrong and push the whole document sideways. */
 @utility shell {
   margin-inline: auto;
   max-width: var(--container-shell);
   width: 100%;
+  padding-inline: --spacing(4);
+
+  @media (width >= 48rem) {
+    padding-inline: --spacing(8);
+  }
 }
 
 /* Sections fade up on first scroll into view. `useReveal` flips data-revealed. */

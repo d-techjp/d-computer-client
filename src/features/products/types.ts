@@ -1,8 +1,25 @@
 import type { Currency, Locale } from "@/i18n/config";
 
+import type { Category, CpuBrand, FacetKey, GpuTier, RamOption } from "./filters";
+
 export type SpecRow = {
   label: string;
   value: string;
+};
+
+/**
+ * The machine-readable half of a product, as opposed to the prose in `specs`.
+ *
+ * The listing filters on these and the cards render them as chips, which is why
+ * they are typed enums rather than free text: "RTX 4070" parsed out of a spec
+ * string would break the moment someone writes "GeForce RTX 4070".
+ */
+export type ProductAttributes = {
+  category: Category;
+  cpuBrand: CpuBrand;
+  gpu: GpuTier;
+  ram: RamOption;
+  storageGb: number;
 };
 
 /**
@@ -23,6 +40,7 @@ export type Product = {
   salePrice: number;
   discountPercent: number;
   specTable: SpecRow[];
+  attributes: ProductAttributes;
   /**
    * List price in every storefront currency. The cart snapshots this so a line
    * added on the Japanese store still totals correctly after switching to the
@@ -31,6 +49,13 @@ export type Product = {
    */
   priceBook: Record<Locale, number>;
 };
+
+/**
+ * How many products each facet option would still match — the number rendered
+ * beside every checkbox. Computed on the server, consumed by the sidebar, so it
+ * is declared here rather than in either.
+ */
+export type FacetCounts = Record<FacetKey, Record<string, number>>;
 
 export type Post = {
   slug: string;

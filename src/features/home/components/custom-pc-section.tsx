@@ -20,10 +20,10 @@ export function CustomPcSection({ t }: { t: Dictionary }) {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#FAF9F500,#F2F2F290_75%,transparent_88%)]" />
       </div>
 
-      <div className="shell relative z-10 px-8 py-16">
-        <div className="grid max-w-[560px] grid-cols-2 items-center gap-6 max-sm:grid-cols-1">
+      <div className="shell relative z-10 py-12 md:py-16">
+        <div className="grid max-w-[560px] grid-cols-1 items-center gap-6 sm:grid-cols-2">
           <div>
-            <h2 className="mb-4 text-[30px] leading-[1.3] font-black text-[#595656]">
+            <h2 className="mb-4 text-[24px] leading-[1.3] font-black text-[#595656] md:text-[30px]">
               {t.customTitle1}
               <br />
               {t.customTitle2}

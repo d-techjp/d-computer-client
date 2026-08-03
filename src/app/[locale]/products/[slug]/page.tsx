@@ -55,15 +55,15 @@ export default async function ProductPage({ params }: PageProps) {
   if (!product) notFound();
 
   return (
-    <div className="shell p-8">
+    <div className="shell py-8 md:py-10">
       <Link
-        href={`/${locale}`}
+        href={`/${locale}/products`}
         className="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-muted transition-colors hover:text-accent"
       >
         ← {t.detailBack}
       </Link>
 
-      <div className="grid grid-cols-2 items-start gap-14 max-lg:grid-cols-1 max-lg:gap-8">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-14">
         <div className="relative aspect-4/3 rounded-2xl bg-mist">
           <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
             {product.tag}
@@ -79,10 +79,12 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
 
         <div>
-          <h1 className="mb-3 text-[32px] leading-[1.25] font-black">{product.name}</h1>
+          <h1 className="mb-3 text-[26px] leading-[1.25] font-black md:text-[32px]">
+            {product.name}
+          </h1>
 
-          <div className="mb-5 flex flex-wrap items-baseline gap-3">
-            <span className="text-[26px] font-black text-accent tabular-nums">
+          <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
+            <span className="text-[22px] font-black text-accent tabular-nums md:text-[26px]">
               {formatPrice(product.salePrice, product.currency)}
             </span>
             <span className="text-[15px] font-semibold text-ink-faint line-through tabular-nums">

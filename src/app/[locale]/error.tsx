@@ -26,7 +26,7 @@ export default function LocaleError({
   }, [error]);
 
   return (
-    <div className="shell flex min-h-[50vh] flex-col items-center justify-center gap-4 px-8 py-24 text-center">
+    <div className="shell flex min-h-[50vh] flex-col items-center justify-center gap-4 py-24 text-center">
       <h1 className="text-2xl font-black">{t.errorTitle}</h1>
       <p className="text-sm text-ink-subtle">{t.errorDesc}</p>
       <Button onClick={reset}>{t.errorRetry}</Button>

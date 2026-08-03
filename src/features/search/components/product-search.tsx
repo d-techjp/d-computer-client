@@ -9,12 +9,17 @@ import { useIsPanelOpen, useUiStore } from "@/features/layout/store/ui.store";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
+import { cn } from "@/lib/utils/cn";
 
 import { useProductSearch } from "../hooks/use-product-search";
 
 /**
  * Presentation only — all fetching, debouncing and race handling lives in
  * `useProductSearch`, which makes both halves testable on their own.
+ *
+ * Below `md` the field would eat the whole header row, so it collapses to an
+ * icon and the input moves into the results panel. Both breakpoints drive the
+ * same `term` state and the same hook; only where the input is mounted changes.
  */
 export function ProductSearch() {
   const { locale, t } = useI18n();
@@ -24,34 +29,63 @@ export function ProductSearch() {
 
   const open = useIsPanelOpen("search");
   const openPanel = useUiStore((state) => state.open);
+  const toggle = useUiStore((state) => state.toggle);
   const close = useUiStore((state) => state.close);
   const ref = useDismissable<HTMLDivElement>(open, close);
 
+  const field = (autoFocus: boolean) => (
+    <input
+      value={term}
+      autoFocus={autoFocus}
+      onChange={(event) => {
+        setTerm(event.target.value);
+        openPanel("search");
+      }}
+      onFocus={() => openPanel("search")}
+      placeholder={t.searchPlaceholder}
+      aria-label={t.searchPlaceholder}
+      className="h-[33px] min-w-0 flex-1 border-none bg-transparent px-3.5 text-[13px] text-ink-body outline-none placeholder:text-ink-faint"
+    />
+  );
+
   return (
     <div className="relative" ref={ref}>
-      <div className="flex items-center overflow-hidden rounded-lg border border-line-strong bg-white focus-within:border-accent">
-        <input
-          value={term}
-          onChange={(event) => {
-            setTerm(event.target.value);
-            openPanel("search");
-          }}
-          onFocus={() => openPanel("search")}
-          placeholder={t.searchPlaceholder}
-          aria-label={t.searchPlaceholder}
-          className="h-[33px] w-[213px] border-none bg-transparent px-3.5 text-[13px] text-ink-body outline-none placeholder:text-ink-faint"
-        />
+      <button
+        type="button"
+        onClick={() => toggle("search")}
+        aria-expanded={open}
+        aria-label={t.searchPlaceholder}
+        className="flex size-9 cursor-pointer items-center justify-center rounded-lg border border-line-strong bg-white text-ink transition-colors hover:border-accent hover:text-accent md:hidden"
+      >
+        <SearchIcon />
+      </button>
+
+      <div className="hidden items-center overflow-hidden rounded-lg border border-line-strong bg-white focus-within:border-accent md:flex md:w-[190px] lg:w-[213px]">
+        {field(false)}
         <span className="flex size-[38px] flex-none items-center justify-center bg-ink-strong text-white">
           <SearchIcon />
         </span>
       </div>
 
-      {open && enabled ? (
+      {open ? (
         <div
           role="listbox"
-          className="absolute top-[calc(100%+10px)] right-0 z-60 w-[360px] overflow-hidden rounded-xl border border-line-soft bg-white shadow-pop"
+          className={cn(
+            "absolute top-[calc(100%+10px)] right-0 z-60 w-[min(88vw,360px)] overflow-hidden rounded-xl border border-line-soft bg-white shadow-pop",
+            // With nothing typed the panel holds only the mobile input, so on
+            // desktop — where the input lives in the header — it has no reason
+            // to exist yet.
+            !enabled && "md:hidden",
+          )}
         >
-          {status === "loading" ? (
+          <div className="flex items-center border-b border-line-faint md:hidden">
+            {field(true)}
+            <span className="flex size-[38px] flex-none items-center justify-center bg-ink-strong text-white">
+              <SearchIcon />
+            </span>
+          </div>
+
+          {!enabled ? null : status === "loading" ? (
             <SearchSkeleton />
           ) : status === "error" ? (
             <p className="px-5 py-8 text-center text-[13px] text-accent">{t.searchError}</p>

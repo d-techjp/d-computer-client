@@ -29,7 +29,7 @@ export function SpecTable({
           <div
             key={row.label}
             className={cn(
-              "grid grid-cols-[1fr_1.4fr]",
+              "grid grid-cols-[minmax(88px,1fr)_1.4fr]",
               index % 2 === 0 ? "bg-white" : "bg-mist-soft",
               index > 0 && "border-t border-line-soft",
             )}
