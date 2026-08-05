@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-import { CATEGORIES, CPU_BRANDS, GPU_TIERS, RAM_OPTIONS } from "../filters";
-import type { Product } from "../types";
+import { paginatedSchema } from "@/lib/api/envelope";
 
 /**
  * Runtime contract for anything crossing the network boundary. TypeScript types
@@ -9,40 +8,47 @@ import type { Product } from "../types";
  * otherwise surface as `undefined is not a function` deep inside a component.
  * Parsing at the edge turns that into one clear error at the call site.
  */
-export const specRowSchema = z.object({
-  label: z.string(),
-  value: z.string(),
-});
+const refSchema = z.object({ id: z.string(), name: z.string(), slug: z.string() });
 
-export const productAttributesSchema = z.object({
-  category: z.enum(CATEGORIES),
-  cpuBrand: z.enum(CPU_BRANDS),
-  gpu: z.enum(GPU_TIERS),
-  ram: z.enum(RAM_OPTIONS),
-  storageGb: z.number(),
-});
+export const productStatusSchema = z.enum(["draft", "active", "out_of_stock", "archived"]);
+
+/**
+ * `specifications` is admin-authored free text (`{ "CPU": "i5-1235U" }`), not
+ * a typed facet — coerced to strings defensively in case a value was entered
+ * as a number.
+ */
+const specificationsSchema = z
+  .record(z.string(), z.unknown())
+  .nullable()
+  .transform((value) =>
+    value
+      ? Object.fromEntries(Object.entries(value).map(([key, v]) => [key, String(v)]))
+      : null,
+  );
 
 export const productSchema = z.object({
+  id: z.string(),
   slug: z.string(),
+  sku: z.string(),
   name: z.string(),
-  tag: z.string(),
-  specs: z.string(),
-  description: z.string(),
-  image: z.string(),
-  currency: z.enum(["JPY", "VND"]),
+  shortDescription: z.string().nullable(),
+  description: z.string().nullable(),
+  thumbnail: z.string().nullable(),
+  images: z
+    .array(z.string())
+    .nullable()
+    .transform((value) => value ?? []),
   price: z.number(),
-  salePrice: z.number(),
-  discountPercent: z.number(),
-  specTable: z.array(specRowSchema),
-  attributes: productAttributesSchema,
-  priceBook: z.object({ ja: z.number(), vi: z.number() }),
+  compareAtPrice: z.number().nullable(),
+  stock: z.number(),
+  status: productStatusSchema,
+  isFeatured: z.boolean(),
+  viewCount: z.number(),
+  specifications: specificationsSchema,
+  category: refSchema.nullable(),
+  brand: refSchema.nullable(),
 });
 
-export const productListSchema = z.object({
-  data: z.array(productSchema),
-});
+export const productListSchema = paginatedSchema(productSchema);
 
-// Fails to compile if the schema and the domain type drift apart.
 export type ProductDto = z.infer<typeof productSchema>;
-const _assertShape: ProductDto extends Product ? true : never = true;
-void _assertShape;

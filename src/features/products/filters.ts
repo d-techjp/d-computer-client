@@ -1,103 +1,70 @@
-import type { Locale, Localized } from "@/i18n/config";
-
 /**
- * The shared vocabulary of the catalogue listing: which facets exist, which
- * values each one accepts, and how the whole selection round-trips through the
- * URL.
+ * The shared vocabulary of the catalogue listing: what can be filtered, how
+ * the whole selection round-trips through the URL, and how it maps onto the
+ * backend's query params.
  *
  * It lives outside `server/` on purpose. The service filters with it, the
  * sidebar renders from it, and the route handler validates with it — one
- * definition, so a facet can never mean one thing to the UI and another to the
- * data layer. Nothing here touches React or the network, which keeps it
+ * definition, so a filter can never mean one thing to the UI and another to
+ * the data layer. Nothing here touches React or the network, which keeps it
  * importable from a Server Component and a Client Component alike.
+ *
+ * Unlike the old mock catalogue, the backend only accepts *one* category and
+ * *one* brand per request (`categoryId`, `brandId` — not arrays), so each
+ * filter group is single-select: picking a second value replaces the first
+ * rather than adding to it.
  */
-
-export const CATEGORIES = ["gaming", "creator", "office"] as const;
-export type Category = (typeof CATEGORIES)[number];
-
-export const CPU_BRANDS = ["amd", "intel"] as const;
-export type CpuBrand = (typeof CPU_BRANDS)[number];
-
-export const GPU_TIERS = ["rtx40", "rtx30", "radeon", "integrated"] as const;
-export type GpuTier = (typeof GPU_TIERS)[number];
-
-/** Kept as strings so RAM shares the generic string-valued facet machinery. */
-export const RAM_OPTIONS = ["8", "16", "32", "64"] as const;
-export type RamOption = (typeof RAM_OPTIONS)[number];
 
 export const PRICE_BUCKETS = ["entry", "mid", "high", "flagship"] as const;
 export type PriceBucket = (typeof PRICE_BUCKETS)[number];
 
-export type PriceBound = {
-  min: number;
-  /** `null` means open-ended — the top bucket. */
-  max: number | null;
+export type PriceBound = { min: number; max: number | null };
+
+/** Bands are authored in VND — the only currency the backend prices in. */
+export const PRICE_BUCKET_BOUNDS: Record<PriceBucket, PriceBound> = {
+  entry: { min: 0, max: 10_000_000 },
+  mid: { min: 10_000_000, max: 20_000_000 },
+  high: { min: 20_000_000, max: 30_000_000 },
+  flagship: { min: 30_000_000, max: null },
 };
-
-/**
- * Price bands are authored per storefront rather than converted. The Japanese
- * and Vietnamese stores price independently (see `Product.priceBook`), so a
- * band that reads naturally in yen would land on arbitrary numbers in đồng.
- */
-export const PRICE_BUCKET_BOUNDS: Record<PriceBucket, Localized<PriceBound>> = {
-  entry: {
-    ja: { min: 0, max: 100_000 },
-    vi: { min: 0, max: 10_000_000 },
-  },
-  mid: {
-    ja: { min: 100_000, max: 200_000 },
-    vi: { min: 10_000_000, max: 20_000_000 },
-  },
-  high: {
-    ja: { min: 200_000, max: 300_000 },
-    vi: { min: 20_000_000, max: 30_000_000 },
-  },
-  flagship: {
-    ja: { min: 300_000, max: null },
-    vi: { min: 30_000_000, max: null },
-  },
-};
-
-export function priceBucketBound(bucket: PriceBucket, locale: Locale): PriceBound {
-  return PRICE_BUCKET_BOUNDS[bucket][locale];
-}
-
-/* ------------------------------------------------------------------------- */
-
-export const FACET_KEYS = ["category", "price", "cpu", "gpu", "ram"] as const;
-export type FacetKey = (typeof FACET_KEYS)[number];
-
-/** Drives both rendering order in the sidebar and validation of URL input. */
-export const FACET_OPTIONS = {
-  category: CATEGORIES,
-  price: PRICE_BUCKETS,
-  cpu: CPU_BRANDS,
-  gpu: GPU_TIERS,
-  ram: RAM_OPTIONS,
-} as const satisfies Record<FacetKey, readonly string[]>;
 
 export const SORT_OPTIONS = ["featured", "price-asc", "price-desc", "name"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 export const DEFAULT_SORT: SortOption = "featured";
 
-/** Values chosen per facet. Empty array = that facet is not narrowing anything. */
-export type FacetSelection = Record<FacetKey, string[]>;
-
-export type ProductQuery = {
-  facets: FacetSelection;
-  sort: SortOption;
-  /** Free-text term, shared with the header search endpoint. */
-  q: string;
-};
-
-export function emptySelection(): FacetSelection {
-  return { category: [], price: [], cpu: [], gpu: [], ram: [] };
+/** What the backend's `sortBy`/`sortOrder` pair should be for a given UI sort. */
+export function sortParams(sort: SortOption): { sortBy: string; sortOrder: "ASC" | "DESC" } {
+  switch (sort) {
+    case "price-asc":
+      return { sortBy: "price", sortOrder: "ASC" };
+    case "price-desc":
+      return { sortBy: "price", sortOrder: "DESC" };
+    case "name":
+      return { sortBy: "name", sortOrder: "ASC" };
+    case "featured":
+      return { sortBy: "createdAt", sortOrder: "DESC" };
+  }
 }
 
+export type ProductQuery = {
+  /** Free-text term, shared with the header search endpoint. */
+  q: string;
+  categoryId: string;
+  brandId: string;
+  priceBucket: PriceBucket | "";
+  inStock: boolean;
+  sort: SortOption;
+  page: number;
+};
+
 export const EMPTY_QUERY: ProductQuery = {
-  facets: emptySelection(),
-  sort: DEFAULT_SORT,
   q: "",
+  categoryId: "",
+  brandId: "",
+  priceBucket: "",
+  inStock: false,
+  sort: DEFAULT_SORT,
+  page: 1,
 };
 
 /* --------------------------------- URL ----------------------------------- */
@@ -105,61 +72,59 @@ export const EMPTY_QUERY: ProductQuery = {
 /** Shape Next hands to a page as `searchParams`, and what `URLSearchParams` yields. */
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 
-const SEPARATOR = ",";
-
-function readParam(params: RawSearchParams, key: string): string[] {
+function readParam(params: RawSearchParams, key: string): string | undefined {
   const raw = params[key];
-  if (raw === undefined) return [];
-
-  // Accept both `?ram=16&ram=32` and `?ram=16,32`; emit only the latter.
-  return (Array.isArray(raw) ? raw : [raw])
-    .flatMap((value) => value.split(SEPARATOR))
-    .map((value) => value.trim())
-    .filter(Boolean);
+  return (Array.isArray(raw) ? raw[0] : raw)?.trim();
 }
 
 /**
- * Turns untrusted query-string input into a `ProductQuery`. Unknown facet
- * values, unknown sorts and duplicates are dropped rather than rejected: a
- * hand-edited or stale URL should still render the catalogue, not a 400.
+ * Turns untrusted query-string input into a `ProductQuery`. An unknown price
+ * bucket or sort value is dropped rather than rejected: a hand-edited or
+ * stale URL should still render the catalogue, not a 400.
  */
 export function parseProductQuery(params: RawSearchParams): ProductQuery {
-  const facets = emptySelection();
+  const q = readParam(params, "q")?.slice(0, 100) ?? "";
 
-  for (const key of FACET_KEYS) {
-    const allowed = FACET_OPTIONS[key] as readonly string[];
-    const selected = readParam(params, key).filter((value) => allowed.includes(value));
-    // Store in declaration order so two equivalent URLs serialise identically.
-    facets[key] = allowed.filter((value) => selected.includes(value));
-  }
+  const priceParam = readParam(params, "price");
+  const priceBucket = (PRICE_BUCKETS as readonly string[]).includes(priceParam ?? "")
+    ? (priceParam as PriceBucket)
+    : "";
 
-  const sortParam = readParam(params, "sort")[0];
+  const sortParam = readParam(params, "sort");
   const sort = (SORT_OPTIONS as readonly string[]).includes(sortParam ?? "")
     ? (sortParam as SortOption)
     : DEFAULT_SORT;
 
-  const qRaw = params.q;
-  const q = (Array.isArray(qRaw) ? qRaw[0] : qRaw)?.trim().slice(0, 100) ?? "";
+  const pageParam = Number(readParam(params, "page"));
+  const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
 
-  return { facets, sort, q };
+  return {
+    q,
+    categoryId: readParam(params, "category") ?? "",
+    brandId: readParam(params, "brand") ?? "",
+    priceBucket,
+    inStock: readParam(params, "inStock") === "1",
+    sort,
+    page,
+  };
 }
 
 export function toSearchParams(query: ProductQuery): URLSearchParams {
   const params = new URLSearchParams();
 
-  for (const key of FACET_KEYS) {
-    const values = query.facets[key];
-    if (values.length > 0) params.set(key, values.join(SEPARATOR));
-  }
-
   if (query.q) params.set("q", query.q);
+  if (query.categoryId) params.set("category", query.categoryId);
+  if (query.brandId) params.set("brand", query.brandId);
+  if (query.priceBucket) params.set("price", query.priceBucket);
+  if (query.inStock) params.set("inStock", "1");
   // The default sort is implied by its absence, keeping the common URL clean.
   if (query.sort !== DEFAULT_SORT) params.set("sort", query.sort);
+  if (query.page > 1) params.set("page", String(query.page));
 
   return params;
 }
 
-/** `""` or `"?category=gaming&ram=32"`, ready to append to a pathname. */
+/** `""` or `"?category=…&price=mid"`, ready to append to a pathname. */
 export function toQueryString(query: ProductQuery): string {
   const params = toSearchParams(query).toString();
   return params ? `?${params}` : "";
@@ -167,43 +132,56 @@ export function toQueryString(query: ProductQuery): string {
 
 /* ------------------------------- mutation -------------------------------- */
 
-export function isFacetSelected(query: ProductQuery, key: FacetKey, value: string): boolean {
-  return query.facets[key].includes(value);
+/** Selecting the same value again clears the filter — that is how a single-select group toggles off. */
+export function setCategory(query: ProductQuery, categoryId: string): ProductQuery {
+  return { ...query, categoryId: query.categoryId === categoryId ? "" : categoryId, page: 1 };
 }
 
-export function toggleFacet(query: ProductQuery, key: FacetKey, value: string): ProductQuery {
-  const current = query.facets[key];
-  const next = current.includes(value)
-    ? current.filter((item) => item !== value)
-    : [...current, value];
-
-  return {
-    ...query,
-    facets: {
-      ...query.facets,
-      // Re-derive from the canonical order rather than appending.
-      [key]: (FACET_OPTIONS[key] as readonly string[]).filter((item) => next.includes(item)),
-    },
-  };
+export function setBrand(query: ProductQuery, brandId: string): ProductQuery {
+  return { ...query, brandId: query.brandId === brandId ? "" : brandId, page: 1 };
 }
 
-export function clearFacets(query: ProductQuery): ProductQuery {
-  return { ...query, facets: emptySelection() };
+export function setPriceBucket(query: ProductQuery, bucket: PriceBucket): ProductQuery {
+  return { ...query, priceBucket: query.priceBucket === bucket ? "" : bucket, page: 1 };
+}
+
+export function setInStock(query: ProductQuery, inStock: boolean): ProductQuery {
+  return { ...query, inStock, page: 1 };
+}
+
+export function clearFilters(query: ProductQuery): ProductQuery {
+  return { ...EMPTY_QUERY, q: query.q, sort: query.sort };
 }
 
 export function withSort(query: ProductQuery, sort: SortOption): ProductQuery {
-  return { ...query, sort };
+  return { ...query, sort, page: 1 };
 }
 
-export function activeFacetCount(query: ProductQuery): number {
-  return FACET_KEYS.reduce((total, key) => total + query.facets[key].length, 0);
+export function withPage(query: ProductQuery, page: number): ProductQuery {
+  return { ...query, page };
 }
 
-/** Every selected value, flattened — the source for the "active filter" chips. */
-export function activeFacetEntries(
-  query: ProductQuery,
-): Array<{ key: FacetKey; value: string }> {
-  return FACET_KEYS.flatMap((key) =>
-    query.facets[key].map((value) => ({ key, value })),
+export function activeFilterCount(query: ProductQuery): number {
+  return (
+    (query.categoryId ? 1 : 0) +
+    (query.brandId ? 1 : 0) +
+    (query.priceBucket ? 1 : 0) +
+    (query.inStock ? 1 : 0)
   );
+}
+
+export type FilterKey = "category" | "brand" | "price" | "inStock";
+
+/** Every active selection, flattened — the source for the "active filter" chips. */
+export function activeFilterEntries(
+  query: ProductQuery,
+): Array<{ key: FilterKey; value: string }> {
+  const entries: Array<{ key: FilterKey; value: string }> = [];
+
+  if (query.categoryId) entries.push({ key: "category", value: query.categoryId });
+  if (query.brandId) entries.push({ key: "brand", value: query.brandId });
+  if (query.priceBucket) entries.push({ key: "price", value: query.priceBucket });
+  if (query.inStock) entries.push({ key: "inStock", value: "1" });
+
+  return entries;
 }

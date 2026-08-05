@@ -6,40 +6,37 @@ import { notFound } from "next/navigation";
 import { BADGE_ICONS } from "@/config/glyphs";
 import { AddToCart } from "@/features/products/components/add-to-cart";
 import { SpecTable } from "@/features/products/components/spec-table";
-import { LOCALES, isLocale } from "@/i18n/config";
+import { discountPercent, isInStock, productImage, specRows } from "@/features/products/types";
+import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { formatPrice } from "@/lib/format/currency";
-import { getProduct, listProductSlugs } from "@/server/services/product.service";
+import { getProduct } from "@/server/services/product.service";
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
 /**
- * Every locale × product combination is prerendered as static HTML at build
- * time. In the original, product "pages" were a `view: 'detail'` flag in
- * component state — one URL for the whole site, invisible to search engines and
- * impossible to link to.
+ * Stock and price change server-side, so this renders dynamically per
+ * request rather than being prebuilt at `next build` time — unlike the old
+ * mock catalogue, there is no fixed set of slugs to enumerate up front.
  */
-export function generateStaticParams() {
-  return LOCALES.flatMap((locale) =>
-    listProductSlugs().map((slug) => ({ locale, slug })),
-  );
-}
-
+export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) return {};
 
-  const product = await getProduct(locale, slug);
+  const product = await getProduct(slug);
   if (!product) return {};
+
+  const description = product.shortDescription ?? product.description ?? undefined;
 
   return {
     title: product.name,
-    description: product.description,
+    description,
     alternates: { canonical: `/${locale}/products/${slug}` },
     openGraph: {
       title: product.name,
-      description: product.description,
-      images: [{ url: product.image }],
+      description,
+      images: [{ url: productImage(product) }],
       type: "website",
     },
   };
@@ -49,10 +46,14 @@ export default async function ProductPage({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [t, product] = await Promise.all([getDictionary(locale), getProduct(locale, slug)]);
+  const [t, product] = await Promise.all([getDictionary(locale), getProduct(slug)]);
 
   // Renders the nearest not-found.tsx instead of crashing on `product.name`.
   if (!product) notFound();
+
+  const discount = discountPercent(product);
+  const outOfStock = !isInStock(product);
+  const specs = specRows(product);
 
   return (
     <div className="shell py-8 md:py-10">
@@ -65,11 +66,17 @@ export default async function ProductPage({ params }: PageProps) {
 
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-14">
         <div className="relative aspect-4/3 rounded-2xl bg-mist">
-          <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
-            {product.tag}
-          </span>
+          {outOfStock ? (
+            <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
+              {t.badgeOutOfStock}
+            </span>
+          ) : product.isFeatured ? (
+            <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
+              {t.badgeFeatured}
+            </span>
+          ) : null}
           <Image
-            src={product.image}
+            src={productImage(product)}
             alt={product.name}
             fill
             priority
@@ -85,28 +92,38 @@ export default async function ProductPage({ params }: PageProps) {
 
           <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
             <span className="text-[22px] font-black text-accent tabular-nums md:text-[26px]">
-              {formatPrice(product.salePrice, product.currency)}
+              {formatPrice(product.price)}
             </span>
-            <span className="text-[15px] font-semibold text-ink-faint line-through tabular-nums">
-              {formatPrice(product.price, product.currency)}
-            </span>
-            <span className="rounded-md bg-accent/12 px-2.5 py-1 text-xs font-extrabold text-accent">
-              -{product.discountPercent}%
-            </span>
+            {discount > 0 && product.compareAtPrice ? (
+              <>
+                <span className="text-[15px] font-semibold text-ink-faint line-through tabular-nums">
+                  {formatPrice(product.compareAtPrice)}
+                </span>
+                <span className="rounded-md bg-accent/12 px-2.5 py-1 text-xs font-extrabold text-accent">
+                  -{discount}%
+                </span>
+              </>
+            ) : null}
           </div>
 
-          <p className="mb-6 text-[14.5px] leading-[1.75] text-ink-muted">{product.description}</p>
+          {product.description ? (
+            <p className="mb-6 text-[14.5px] leading-[1.75] text-ink-muted">
+              {product.description}
+            </p>
+          ) : null}
 
-          <AddToCart product={product} />
+          <AddToCart product={product} disabled={outOfStock} />
 
-          <SpecTable
-            rows={product.specTable}
-            labels={{
-              title: t.detailSpecs,
-              showAll: t.specShowAll,
-              showLess: t.specShowLess,
-            }}
-          />
+          {specs.length > 0 ? (
+            <SpecTable
+              rows={specs}
+              labels={{
+                title: t.detailSpecs,
+                showAll: t.specShowAll,
+                showLess: t.specShowLess,
+              }}
+            />
+          ) : null}
 
           <ul className="flex flex-col gap-2.5">
             {t.sideBadges.map((badge, index) => {

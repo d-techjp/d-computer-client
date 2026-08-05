@@ -1,28 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
-import { parseProductQuery } from "@/features/products/filters";
-import { DEFAULT_LOCALE, LOCALES } from "@/i18n/config";
-import { listProducts } from "@/server/services/product.service";
+import { productListSchema } from "@/features/products/api/product.schema";
+import { backendFetch } from "@/server/lib/backend-fetch";
 
 /**
- * Route handlers act as the app's BFF: the browser never talks to the data
- * layer directly, and query params are validated before they reach it.
+ * Route handlers act as the app's BFF: the browser never talks to the real
+ * backend directly (so it never needs that origin's CORS policy), and query
+ * params are validated before they reach it.
  *
- * Locale and limit are strict — a bad value there is a caller bug worth a 400.
- * The facet params are parsed leniently by `parseProductQuery`, which drops
- * anything it does not recognise: a shared link carrying a facet value that has
- * since been retired should still return products.
+ * Only `search` and `limit` are exposed here — this route exists for the
+ * header's search dropdown, not the full listing page (that one is a Server
+ * Component reading `productService` directly, no network round trip).
  */
 const querySchema = z.object({
-  locale: z.enum(LOCALES).default(DEFAULT_LOCALE),
-  q: z.string().trim().max(100).optional(),
+  search: z.string().trim().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(50).optional(),
 });
 
 export async function GET(request: NextRequest) {
-  const params = Object.fromEntries(request.nextUrl.searchParams);
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -31,10 +28,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { locale, q, limit } = parsed.data;
-  const { facets, sort } = parseProductQuery(params);
+  const { search, limit } = parsed.data;
 
-  const data = await listProducts(locale, { query: q, limit, facets, sort });
+  const data = await backendFetch<unknown>("/products", {
+    search,
+    limit,
+    status: "active",
+  });
 
-  return NextResponse.json({ data });
+  return NextResponse.json(productListSchema.parse(data));
 }

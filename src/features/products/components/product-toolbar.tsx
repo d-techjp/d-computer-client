@@ -4,7 +4,7 @@ import { FilterIcon } from "@/components/ui/icons";
 import { useI18n } from "@/i18n/i18n-provider";
 import { interpolate } from "@/lib/format/interpolate";
 
-import { SORT_OPTIONS, activeFacetCount, type ProductQuery, type SortOption } from "../filters";
+import { SORT_OPTIONS, activeFilterCount, type ProductQuery, type SortOption } from "../filters";
 
 /**
  * Result count, sort control, and — below `lg` — the button that opens the
@@ -26,7 +26,7 @@ export function ProductToolbar({
   onOpenFilters: () => void;
 }) {
   const { t } = useI18n();
-  const active = activeFacetCount(query);
+  const active = activeFilterCount(query);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft pb-4">

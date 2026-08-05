@@ -15,7 +15,7 @@ import type { Product } from "../types";
  * button. Everything else on that page (gallery, price, spec table shell,
  * description) renders on the server.
  */
-export function AddToCart({ product }: { product: Product }) {
+export function AddToCart({ product, disabled = false }: { product: Product; disabled?: boolean }) {
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
 
@@ -35,8 +35,8 @@ export function AddToCart({ product }: { product: Product }) {
         onDecrement={() => setQuantity((value) => Math.max(1, value - 1))}
         labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}
       />
-      <Button onClick={handleAdd} className="flex-1">
-        {t.detailAddToCart}
+      <Button onClick={handleAdd} disabled={disabled} className="flex-1">
+        {disabled ? t.badgeOutOfStock : t.detailAddToCart}
       </Button>
     </div>
   );

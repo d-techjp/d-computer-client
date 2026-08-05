@@ -1,7 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
-import { facetOptionLabel, storageLabel } from "../facet-labels";
 import type { Product } from "../types";
 import { ProductCard } from "./product-card";
 
@@ -28,12 +27,11 @@ export function ProductGrid({
           key={product.slug}
           product={product}
           locale={locale}
+          t={t}
           priority={index < 3}
-          chips={[
-            facetOptionLabel("gpu", product.attributes.gpu, locale, t),
-            `${product.attributes.ram}GB`,
-            storageLabel(product.attributes.storageGb),
-          ]}
+          chips={[product.category?.name, product.brand?.name].filter((value): value is string =>
+            Boolean(value),
+          )}
         />
       ))}
     </div>

@@ -9,7 +9,6 @@ import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useIsPanelOpen, useUiStore } from "@/features/layout/store/ui.store";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { useI18n } from "@/i18n/i18n-provider";
-import { LOCALE_CURRENCY } from "@/i18n/config";
 import { formatPrice } from "@/lib/format/currency";
 
 import {
@@ -31,20 +30,18 @@ import { useCartHydrated } from "../store/use-cart-hydrated";
  * dropdown, which already worked fine with a pointer.
  */
 export function CartMenu() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const hydrated = useCartHydrated();
 
   const lines = useCartLines();
   const count = useCartCount();
-  const subtotal = useCartSubtotal(locale);
+  const subtotal = useCartSubtotal();
   const { increment, decrement, remove } = useCartActions();
 
   const open = useIsPanelOpen("cart");
   const toggle = useUiStore((state) => state.toggle);
   const close = useUiStore((state) => state.close);
   const ref = useDismissable<HTMLDivElement>(open, close);
-
-  const currency = LOCALE_CURRENCY[locale];
 
   // The sheet covers the viewport on mobile — letting the page scroll behind
   // it is the classic bug where dismissing it leaves you somewhere else. A
@@ -138,7 +135,7 @@ export function CartMenu() {
                           {line.name}
                         </span>
                         <span className="block text-[13px] font-bold text-accent">
-                          {formatPrice(line.unitPrice[locale] * line.quantity, currency)}
+                          {formatPrice(line.unitPrice * line.quantity)}
                         </span>
                       </span>
 
@@ -167,7 +164,7 @@ export function CartMenu() {
                   <div className="mb-3.5 flex justify-between text-[13.5px]">
                     <span className="text-ink-subtle">{t.cartSubtotal}</span>
                     <span className="text-[17px] font-extrabold tabular-nums">
-                      {formatPrice(subtotal, currency)}
+                      {formatPrice(subtotal)}
                     </span>
                   </div>
                   <Button size="block">{t.cartCheckout}</Button>

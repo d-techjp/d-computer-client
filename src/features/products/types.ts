@@ -1,66 +1,55 @@
-import type { Currency, Locale } from "@/i18n/config";
+export type ProductStatus = "draft" | "active" | "out_of_stock" | "archived";
 
-import type { Category, CpuBrand, FacetKey, GpuTier, RamOption } from "./filters";
-
-export type SpecRow = {
-  label: string;
-  value: string;
-};
+export type CategoryRef = { id: string; name: string; slug: string };
+export type BrandRef = { id: string; name: string; slug: string };
 
 /**
- * The machine-readable half of a product, as opposed to the prose in `specs`.
- *
- * The listing filters on these and the cards render them as chips, which is why
- * they are typed enums rather than free text: "RTX 4070" parsed out of a spec
- * string would break the moment someone writes "GeForce RTX 4070".
- */
-export type ProductAttributes = {
-  category: Category;
-  cpuBrand: CpuBrand;
-  gpu: GpuTier;
-  ram: RamOption;
-  storageGb: number;
-};
-
-/**
- * The shape a component consumes: already translated, already priced in one
- * currency. Nothing downstream of the service layer knows about locales.
+ * The shape a component consumes, mirroring the real backend's product
+ * entity: one price (not a per-locale price book — the storefront prices in
+ * VND only), an optional `compareAtPrice` for a strike-through instead of a
+ * standing discount percentage, and a free-form `specifications` object
+ * instead of typed facet attributes.
  */
 export type Product = {
+  id: string;
   slug: string;
+  sku: string;
   name: string;
-  tag: string;
-  specs: string;
-  description: string;
-  image: string;
-  currency: Currency;
-  /** List price, in the smallest sensible unit for the currency. */
+  shortDescription: string | null;
+  description: string | null;
+  thumbnail: string | null;
+  images: string[];
   price: number;
-  /** Price after the standing 10% storefront discount. */
-  salePrice: number;
-  discountPercent: number;
-  specTable: SpecRow[];
-  attributes: ProductAttributes;
-  /**
-   * List price in every storefront currency. The cart snapshots this so a line
-   * added on the Japanese store still totals correctly after switching to the
-   * Vietnamese one — the storefronts price independently, they are not an FX
-   * conversion of each other.
-   */
-  priceBook: Record<Locale, number>;
+  compareAtPrice: number | null;
+  stock: number;
+  status: ProductStatus;
+  isFeatured: boolean;
+  viewCount: number;
+  specifications: Record<string, string> | null;
+  category: CategoryRef | null;
+  brand: BrandRef | null;
 };
 
-/**
- * How many products each facet option would still match — the number rendered
- * beside every checkbox. Computed on the server, consumed by the sidebar, so it
- * is declared here rather than in either.
- */
-export type FacetCounts = Record<FacetKey, Record<string, number>>;
+export type SpecRow = { label: string; value: string };
 
-export type Post = {
-  slug: string;
-  date: string;
-  tag: string;
-  title: string;
-  image: string;
-};
+const FALLBACK_IMAGE = "/images/pc1.png";
+
+export function productImage(product: Pick<Product, "thumbnail">): string {
+  return product.thumbnail ?? FALLBACK_IMAGE;
+}
+
+export function isInStock(product: Pick<Product, "stock" | "status">): boolean {
+  return product.status === "active" && product.stock > 0;
+}
+
+/** `0` when there is nothing to strike through, or the compare price is not actually higher. */
+export function discountPercent(product: Pick<Product, "price" | "compareAtPrice">): number {
+  const { price, compareAtPrice } = product;
+  if (!compareAtPrice || compareAtPrice <= price) return 0;
+  return Math.round((1 - price / compareAtPrice) * 100);
+}
+
+export function specRows(product: Pick<Product, "specifications">): SpecRow[] {
+  if (!product.specifications) return [];
+  return Object.entries(product.specifications).map(([label, value]) => ({ label, value }));
+}

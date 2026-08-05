@@ -1,29 +1,40 @@
 "use client";
 
+import type { Brand, Category } from "@/features/catalog/types";
 import { useI18n } from "@/i18n/i18n-provider";
 import { interpolate } from "@/lib/format/interpolate";
 
-import { facetOptionLabel } from "../facet-labels";
-import { activeFacetEntries, type FacetKey, type ProductQuery } from "../filters";
+import { priceBucketLabel } from "../facet-labels";
+import { activeFilterEntries, type PriceBucket, type ProductQuery } from "../filters";
 
 /**
  * Chips for everything currently narrowing the list.
  *
  * On a phone the sidebar is behind a drawer, so without these the only clue
  * that a filter is on would be a short result list. Each chip removes exactly
- * one value, which is far quicker than reopening the drawer to untick it.
+ * one selection, which is far quicker than reopening the drawer to untick it.
  */
 export function ActiveFilterChips({
   query,
-  onToggle,
+  categories,
+  brands,
+  onSetCategory,
+  onSetBrand,
+  onSetPrice,
+  onToggleInStock,
   onClear,
 }: {
   query: ProductQuery;
-  onToggle: (key: FacetKey, value: string) => void;
+  categories: Category[];
+  brands: Brand[];
+  onSetCategory: (categoryId: string) => void;
+  onSetBrand: (brandId: string) => void;
+  onSetPrice: (bucket: PriceBucket) => void;
+  onToggleInStock: () => void;
   onClear: () => void;
 }) {
-  const { locale, t } = useI18n();
-  const entries = activeFacetEntries(query);
+  const { t } = useI18n();
+  const entries = activeFilterEntries(query);
 
   if (entries.length === 0) return null;
 
@@ -32,13 +43,27 @@ export function ActiveFilterChips({
       <span className="text-[12.5px] text-ink-subtle">{t.filterActive}</span>
 
       {entries.map(({ key, value }) => {
-        const label = facetOptionLabel(key, value, locale, t);
+        const label =
+          key === "category"
+            ? (categories.find((category) => category.id === value)?.name ?? value)
+            : key === "brand"
+              ? (brands.find((brand) => brand.id === value)?.name ?? value)
+              : key === "price"
+                ? priceBucketLabel(value as PriceBucket, t)
+                : t.filterInStock;
+
+        const remove = () => {
+          if (key === "category") onSetCategory(value);
+          else if (key === "brand") onSetBrand(value);
+          else if (key === "price") onSetPrice(value as PriceBucket);
+          else onToggleInStock();
+        };
 
         return (
           <button
             key={`${key}:${value}`}
             type="button"
-            onClick={() => onToggle(key, value)}
+            onClick={remove}
             aria-label={interpolate(t.filterRemove, { label })}
             className="flex cursor-pointer items-center gap-1.5 rounded-full border border-line-soft bg-mist-soft py-1 pr-2 pl-3 text-[12.5px] font-semibold transition-colors hover:border-accent hover:text-accent"
           >

@@ -140,6 +140,67 @@
   }
 }
 
+/* Minimal typographic styling for admin-authored article HTML. Tailwind's
+   preflight strips default heading/paragraph styling, so raw `<p>`/`<h2>`
+   markup from `dangerouslySetInnerHTML` needs it restored explicitly — pulling
+   in the `@tailwindcss/typography` plugin for one page wasn't worth the
+   dependency. */
+@utility article-content {
+  & :where(p) {
+    margin-block: --spacing(4);
+  }
+
+  & :where(h2, h3, h4) {
+    margin-block: --spacing(7) --spacing(3);
+    font-weight: 800;
+    color: var(--color-ink);
+  }
+
+  & :where(h2) {
+    font-size: --spacing(5.5);
+  }
+
+  & :where(h3) {
+    font-size: --spacing(4.5);
+  }
+
+  & :where(ul, ol) {
+    margin-block: --spacing(4);
+    padding-inline-start: --spacing(5);
+  }
+
+  & :where(ul) {
+    list-style: disc;
+  }
+
+  & :where(ol) {
+    list-style: decimal;
+  }
+
+  & :where(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  & :where(strong) {
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  & :where(img) {
+    margin-block: --spacing(5);
+    border-radius: --spacing(3);
+  }
+
+  & :where(blockquote) {
+    margin-block: --spacing(5);
+    border-inline-start: 3px solid var(--color-line-strong);
+    padding-inline-start: --spacing(4);
+    color: var(--color-ink-muted);
+  }
+}
+
 /* Sections fade up on first scroll into view. `useReveal` flips data-revealed. */
 @utility reveal {
   opacity: 0;

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { SearchIcon } from "@/components/ui/icons";
+import { productImage } from "@/features/products/types";
 import { useIsPanelOpen, useUiStore } from "@/features/layout/store/ui.store";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -25,7 +26,7 @@ export function ProductSearch() {
   const { locale, t } = useI18n();
   const [term, setTerm] = useState("");
 
-  const { status, results, enabled } = useProductSearch(term, locale);
+  const { status, results, enabled } = useProductSearch(term);
 
   const open = useIsPanelOpen("search");
   const openPanel = useUiStore((state) => state.open);
@@ -101,16 +102,22 @@ export function ProductSearch() {
                     className="flex items-center gap-3 border-b border-mist px-4 py-3 transition-colors last:border-b-0 hover:bg-mist-soft"
                   >
                     <span className="relative size-11 flex-none overflow-hidden rounded-lg bg-mist">
-                      <Image src={product.image} alt="" fill sizes="44px" className="object-contain" />
+                      <Image
+                        src={productImage(product)}
+                        alt=""
+                        fill
+                        sizes="44px"
+                        className="object-contain"
+                      />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-semibold">{product.name}</span>
                       <span className="block truncate text-[11.5px] text-ink-subtle">
-                        {product.specs}
+                        {product.shortDescription ?? product.category?.name ?? ""}
                       </span>
                     </span>
                     <span className="flex-none text-[13px] font-bold text-accent tabular-nums">
-                      {formatPrice(product.salePrice, product.currency)}
+                      {formatPrice(product.price)}
                     </span>
                   </Link>
                 </li>

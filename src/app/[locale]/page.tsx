@@ -7,7 +7,14 @@ import { Hero } from "@/features/home/components/hero";
 import { TrustBar } from "@/features/home/components/trust-bar";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { listPosts, listProducts } from "@/server/services/product.service";
+import { listArticles } from "@/server/services/article.service";
+import { listProducts } from "@/server/services/product.service";
+
+// Stock, prices and featured flags come from the live backend — this page
+// must never be frozen into a static HTML file at build time.
+export const dynamic = "force-dynamic";
+
+const FEATURED_LIMIT = 4;
 
 /**
  * A Server Component. It reads the data layer *directly* rather than fetching
@@ -24,12 +31,17 @@ export default async function HomePage({
   if (!isLocale(locale)) notFound();
 
   // Independent reads run concurrently instead of serialising into a waterfall.
-  const [t, products, posts] = await Promise.all([
+  const [t, featured, articleListing] = await Promise.all([
     getDictionary(locale),
     // The home page shows a shortlist; the full catalogue lives at /products.
-    listProducts(locale, { limit: 4 }),
-    listPosts(locale),
+    listProducts({ limit: FEATURED_LIMIT, isFeatured: true }),
+    listArticles({ limit: FEATURED_LIMIT }),
   ]);
+
+  // Falls back to the plain catalogue when nothing is flagged `isFeatured`
+  // yet, so the section is never empty on a freshly seeded catalogue.
+  const products =
+    featured.length > 0 ? featured : await listProducts({ limit: FEATURED_LIMIT });
 
   return (
     <>
@@ -37,7 +49,7 @@ export default async function HomePage({
       <TrustBar t={t} />
       <FeaturedProducts products={products} locale={locale} t={t} />
       <CustomPcSection t={t} />
-      <BlogSection posts={posts} locale={locale} t={t} />
+      <BlogSection articles={articleListing.articles} locale={locale} t={t} />
     </>
   );
 }

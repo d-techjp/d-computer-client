@@ -4,19 +4,18 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
 
-import type { Locale } from "@/i18n/config";
 import type { Product } from "@/features/products/types";
 
 /**
- * A cart line snapshots the price *at the moment of adding*, per storefront —
- * standard e-commerce practice, and it also means a rehydrated cart renders
- * without waiting on a catalogue fetch.
+ * A cart line snapshots the price *at the moment of adding* — standard
+ * e-commerce practice, and it also means a rehydrated cart renders without
+ * waiting on a catalogue fetch.
  */
 export type CartLine = {
   slug: string;
   name: string;
   image: string;
-  unitPrice: Record<Locale, number>;
+  unitPrice: number;
   quantity: number;
 };
 
@@ -35,27 +34,10 @@ type CartActions = {
 
 export type CartStore = CartState & CartActions;
 
-const INITIAL_LINES: CartLine[] = [
-  {
-    slug: "d-game-premium",
-    name: "D-Game Premium",
-    image: "/images/pc1.png",
-    unitPrice: { vi: 24_900_000, ja: 249_800 },
-    quantity: 1,
-  },
-  {
-    slug: "d-mini-compact",
-    name: "D-Mini Compact",
-    image: "/images/pc1.png",
-    unitPrice: { vi: 8_900_000, ja: 89_800 },
-    quantity: 1,
-  },
-];
-
 export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
-      lines: INITIAL_LINES,
+      lines: [],
 
       add: (product, quantity = 1) =>
         set((state) => {
@@ -77,8 +59,8 @@ export const useCartStore = create<CartStore>()(
               {
                 slug: product.slug,
                 name: product.name,
-                image: product.image,
-                unitPrice: { ...product.priceBook },
+                image: product.thumbnail ?? "/images/pc1.png",
+                unitPrice: product.price,
                 quantity,
               },
             ],
@@ -116,10 +98,10 @@ export const useCartStore = create<CartStore>()(
     {
       name: "d-computer-client.cart",
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
       // Actions are recreated on every load; only data belongs in storage.
       partialize: (state) => ({ lines: state.lines }),
-      // The server has no localStorage, so SSR always renders INITIAL_LINES.
+      // The server has no localStorage, so SSR always renders an empty cart.
       // Hydrating manually (see `useCartHydrated`) lets the first client paint
       // match the server markup, then swap in the stored cart.
       skipHydration: true,
@@ -139,9 +121,9 @@ export const useCartLines = () => useCartStore(useShallow((state) => state.lines
 export const useCartCount = () =>
   useCartStore((state) => state.lines.reduce((total, line) => total + line.quantity, 0));
 
-export const useCartSubtotal = (locale: Locale) =>
+export const useCartSubtotal = () =>
   useCartStore((state) =>
-    state.lines.reduce((total, line) => total + line.unitPrice[locale] * line.quantity, 0),
+    state.lines.reduce((total, line) => total + line.unitPrice * line.quantity, 0),
   );
 
 /** Actions are stable across renders, so this never causes a re-render. */

@@ -6,13 +6,18 @@ import { ProductBrowser } from "@/features/products/components/product-browser";
 import { ProductGrid } from "@/features/products/components/product-grid";
 import {
   DEFAULT_SORT,
-  activeFacetCount,
+  activeFilterCount,
   parseProductQuery,
   type RawSearchParams,
 } from "@/features/products/filters";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { listCategories, listBrands } from "@/server/services/catalog.service";
 import { listProductPage } from "@/server/services/product.service";
+
+// Filtering, sorting and paging all resolve against the live backend — this
+// page must never be frozen into a static HTML file at build time.
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -29,12 +34,12 @@ export async function generateMetadata({
   const t = await getDictionary(locale);
   const query = parseProductQuery(rawSearchParams);
 
-  // Every facet combination is a distinct URL over the same catalogue. The
+  // Every filter combination is a distinct URL over the same catalogue. The
   // unfiltered listing is the page worth indexing; the permutations point their
   // canonical at it and stay out of the index, which is the standard way to
   // avoid drowning a site in near-duplicate result pages.
   const isFiltered =
-    activeFacetCount(query) > 0 || query.sort !== DEFAULT_SORT || query.q !== "";
+    activeFilterCount(query) > 0 || query.sort !== DEFAULT_SORT || query.q !== "" || query.page > 1;
 
   return {
     title: t.listTitle,
@@ -47,8 +52,8 @@ export async function generateMetadata({
 /**
  * The catalogue listing. A Server Component that reads the filter state
  * straight out of `searchParams`, so the first paint already shows the
- * filtered, sorted result — no client fetch, no spinner, and a shared link
- * renders exactly what the sender saw.
+ * filtered, sorted, paginated result — no client fetch, no spinner, and a
+ * shared link renders exactly what the sender saw.
  */
 export default async function ProductsPage({ params, searchParams }: PageProps) {
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
@@ -56,9 +61,11 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
 
   const query = parseProductQuery(rawSearchParams);
 
-  const [t, listing] = await Promise.all([
+  const [t, listing, categories, brands] = await Promise.all([
     getDictionary(locale),
-    listProductPage(locale, query),
+    listProductPage(query),
+    listCategories(),
+    listBrands(),
   ]);
 
   return (
@@ -82,8 +89,14 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
         </p>
       </header>
 
-      <ProductBrowser query={query} facets={listing.facets} total={listing.total}>
-        {listing.total > 0 ? (
+      <ProductBrowser
+        query={query}
+        categories={categories}
+        brands={brands}
+        total={listing.total}
+        totalPages={listing.totalPages}
+      >
+        {listing.products.length > 0 ? (
           <ProductGrid products={listing.products} locale={locale} t={t} />
         ) : (
           <div className="rounded-2xl border border-dashed border-line-strong px-6 py-16 text-center">

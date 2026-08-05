@@ -15,7 +15,7 @@ const NAV_PATHS: readonly string[] = [
   "", // カスタムPC
   "", // ご利用ガイド
   "", // サポート
-  "", // ブログ
+  "/articles", // ブログ
 ];
 
 const FOOTER_PATHS: readonly (readonly string[])[] = [

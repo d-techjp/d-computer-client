@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { searchProducts } from "@/features/products/api/product.repository";
 import type { Product } from "@/features/products/types";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import type { Locale } from "@/i18n/config";
 import { ApiError } from "@/lib/api/errors";
 
 export type SearchStatus = "idle" | "loading" | "ready" | "error";
@@ -27,7 +26,7 @@ const MIN_QUERY_LENGTH = 2;
  *     writing state synchronously inside the effect and keeping two sources of
  *     truth in sync — the bug that produces a spinner that never stops.
  */
-export function useProductSearch(term: string, locale: Locale) {
+export function useProductSearch(term: string) {
   const debouncedTerm = useDebouncedValue(term, 300);
   const query = debouncedTerm.trim();
   const enabled = query.length >= MIN_QUERY_LENGTH;
@@ -41,7 +40,7 @@ export function useProductSearch(term: string, locale: Locale) {
 
     const controller = new AbortController();
 
-    searchProducts({ locale, query, signal: controller.signal })
+    searchProducts({ query, signal: controller.signal })
       .then((products) => {
         setResults(products);
         setSettledQuery(query);
@@ -53,7 +52,7 @@ export function useProductSearch(term: string, locale: Locale) {
       });
 
     return () => controller.abort();
-  }, [enabled, locale, query]);
+  }, [enabled, query]);
 
   const status: SearchStatus = !enabled
     ? "idle"

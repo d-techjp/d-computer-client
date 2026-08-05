@@ -31,6 +31,7 @@ export function FeaturedProducts({
             key={product.slug}
             product={product}
             locale={locale}
+            t={t}
             priority={index < 2}
           />
         ))}

@@ -1,45 +1,52 @@
 "use client";
 
+import type { ReactNode } from "react";
+
+import type { Brand, Category } from "@/features/catalog/types";
 import { CheckIcon } from "@/components/ui/icons";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils/cn";
 
-import { facetOptionLabel } from "../facet-labels";
-import {
-  FACET_KEYS,
-  FACET_OPTIONS,
-  activeFacetCount,
-  isFacetSelected,
-  type FacetKey,
-  type ProductQuery,
-} from "../filters";
-import type { FacetCounts } from "../types";
+import { priceBucketLabel } from "../facet-labels";
+import { PRICE_BUCKETS, activeFilterCount, type PriceBucket, type ProductQuery } from "../filters";
 
 /**
- * The facet checkboxes. Pure presentation over `query` + `facets`: it holds no
- * state of its own, because the *URL* is the state. That is what makes a
- * filtered view shareable, bookmarkable and restorable with the back button —
- * and it is why the same component can render in the desktop sidebar and
- * inside the mobile drawer without the two ever disagreeing.
+ * The filter sidebar. Pure presentation over `query` + the reference lists:
+ * it holds no state of its own, because the *URL* is the state. That is what
+ * makes a filtered view shareable, bookmarkable and restorable with the back
+ * button — and it is why the same component can render in the desktop
+ * sidebar and inside the mobile drawer without the two ever disagreeing.
+ *
+ * Each group is single-select — the backend only accepts one `categoryId`
+ * and one `brandId` per request — so clicking an option replaces whatever
+ * was selected in that group, and clicking it again clears it.
  */
 export function ProductFilterPanel({
   query,
-  facets,
-  onToggle,
+  categories,
+  brands,
+  onSetCategory,
+  onSetBrand,
+  onSetPrice,
+  onToggleInStock,
   onClear,
   /** The mobile drawer supplies its own title bar, so it turns this off. */
   showHeading = true,
   className,
 }: {
   query: ProductQuery;
-  facets: FacetCounts;
-  onToggle: (key: FacetKey, value: string) => void;
+  categories: Category[];
+  brands: Brand[];
+  onSetCategory: (categoryId: string) => void;
+  onSetBrand: (brandId: string) => void;
+  onSetPrice: (bucket: PriceBucket) => void;
+  onToggleInStock: () => void;
   onClear: () => void;
   showHeading?: boolean;
   className?: string;
 }) {
-  const { locale, t } = useI18n();
-  const active = activeFacetCount(query);
+  const { t } = useI18n();
+  const active = activeFilterCount(query);
 
   return (
     <div className={cn("text-ink", className)}>
@@ -58,65 +65,101 @@ export function ProductFilterPanel({
         </div>
       ) : null}
 
-      {FACET_KEYS.map((key, index) => (
-        <fieldset
-          key={key}
-          className={cn(
-            "border-line-soft pt-4",
-            // No rule above the first group when it is also the first thing in
-            // the drawer — the title bar already draws one.
-            (showHeading || index > 0) && "mt-4 border-t",
-          )}
-        >
-          <legend className="sr-only">{t.facetGroups[key]}</legend>
-          <p className="mb-3 text-[13px] font-bold" aria-hidden>
-            {t.facetGroups[key]}
-          </p>
+      {categories.length > 0 ? (
+        <FilterGroup title={t.filterGroups.category} first={!showHeading}>
+          {categories.map((category) => (
+            <FilterOption
+              key={category.id}
+              label={category.name}
+              indent={Boolean(category.parentId)}
+              checked={query.categoryId === category.id}
+              onChange={() => onSetCategory(category.id)}
+            />
+          ))}
+        </FilterGroup>
+      ) : null}
 
-          <div className="flex flex-col gap-2.5">
-            {(FACET_OPTIONS[key] as readonly string[]).map((value) => {
-              const count = facets[key][value] ?? 0;
-              const checked = isFacetSelected(query, key, value);
-              // A zero-count option stays visible but unclickable: hiding it
-              // would make the list jump around as you tick things.
-              const unavailable = count === 0 && !checked;
+      {brands.length > 0 ? (
+        <FilterGroup title={t.filterGroups.brand}>
+          {brands.map((brand) => (
+            <FilterOption
+              key={brand.id}
+              label={brand.name}
+              checked={query.brandId === brand.id}
+              onChange={() => onSetBrand(brand.id)}
+            />
+          ))}
+        </FilterGroup>
+      ) : null}
 
-              return (
-                <label
-                  key={value}
-                  className={cn(
-                    "group flex items-center gap-2.5 text-[13px] select-none",
-                    unavailable ? "cursor-not-allowed opacity-40" : "cursor-pointer",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    disabled={unavailable}
-                    onChange={() => onToggle(key, value)}
-                    className="peer sr-only"
-                  />
-                  <span
-                    className={cn(
-                      "flex size-[17px] flex-none items-center justify-center rounded-[5px] border-[1.5px] border-line-strong text-transparent transition-colors peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent",
-                      !unavailable && "group-hover:border-accent",
-                    )}
-                    aria-hidden
-                  >
-                    <CheckIcon width={11} height={11} />
-                  </span>
-                  <span className={cn("min-w-0 flex-1", checked && "font-semibold")}>
-                    {facetOptionLabel(key, value, locale, t)}
-                  </span>
-                  <span className="flex-none text-[11.5px] text-ink-faint tabular-nums">
-                    {count}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      ))}
+      <FilterGroup title={t.filterGroups.price}>
+        {PRICE_BUCKETS.map((bucket) => (
+          <FilterOption
+            key={bucket}
+            label={priceBucketLabel(bucket, t)}
+            checked={query.priceBucket === bucket}
+            onChange={() => onSetPrice(bucket)}
+          />
+        ))}
+      </FilterGroup>
+
+      <FilterGroup title={t.filterGroups.stock}>
+        <FilterOption
+          label={t.filterInStock}
+          checked={query.inStock}
+          onChange={onToggleInStock}
+        />
+      </FilterGroup>
     </div>
+  );
+}
+
+function FilterGroup({
+  title,
+  first = false,
+  children,
+}: {
+  title: string;
+  first?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <fieldset className={cn("border-line-soft pt-4", !first && "mt-4 border-t")}>
+      <legend className="sr-only">{title}</legend>
+      <p className="mb-3 text-[13px] font-bold" aria-hidden>
+        {title}
+      </p>
+      <div className="flex flex-col gap-2.5">{children}</div>
+    </fieldset>
+  );
+}
+
+function FilterOption({
+  label,
+  checked,
+  indent = false,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  indent?: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <label
+      className={cn(
+        "group flex cursor-pointer items-center gap-2.5 text-[13px] select-none",
+        indent && "pl-3",
+      )}
+    >
+      <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
+      <span
+        className="flex size-[17px] flex-none items-center justify-center rounded-[5px] border-[1.5px] border-line-strong text-transparent transition-colors peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent group-hover:border-accent"
+        aria-hidden
+      >
+        <CheckIcon width={11} height={11} />
+      </span>
+      <span className={cn("min-w-0 flex-1", checked && "font-semibold")}>{label}</span>
+    </label>
   );
 }
