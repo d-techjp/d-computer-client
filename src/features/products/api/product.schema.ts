@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { paginatedSchema } from "@/lib/api/envelope";
+import { envelopeOrPlainSchema, paginatedSchema } from "@/lib/api/envelope";
 
 /**
  * Runtime contract for anything crossing the network boundary. TypeScript types
@@ -50,6 +50,13 @@ export const productSchema = z.object({
 });
 
 export const productListSchema = paginatedSchema(productSchema);
+
+/**
+ * For `apiClient` (browser) callers only — see `envelopeOrPlainSchema`. Server
+ * code that goes through `backendFetch` should keep using `productListSchema`
+ * directly; the envelope is already gone by the time it sees the payload.
+ */
+export const productListResponseSchema = envelopeOrPlainSchema(productListSchema);
 
 /**
  * The long-form product description lives behind its own endpoint rather than

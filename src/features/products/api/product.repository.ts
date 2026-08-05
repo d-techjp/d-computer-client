@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 
 import type { Product } from "../types";
-import { productListSchema } from "./product.schema";
+import { productListResponseSchema } from "./product.schema";
 
 /**
  * Repository pattern: components ask for *products*, not for a URL.
@@ -10,10 +10,13 @@ import { productListSchema } from "./product.schema";
  * envelope, validation — is sealed in here. A component that calls
  * `searchProducts()` keeps working if the endpoint moves to GraphQL tomorrow.
  *
- * This hits the internal `/api/products` route rather than the real backend
- * directly: the browser calling a third-party origin needs that origin's
- * CORS policy to cooperate, while a same-origin Next.js route handler has no
- * such dependency.
+ * `apiClient`'s base URL is deployment-dependent: locally (and whenever
+ * `NEXT_PUBLIC_API_BASE_URL` is unset) it hits this app's own `/api/products`
+ * route handler, same-origin, no CORS to worry about. In production it is set
+ * to `/api/v1`, which nginx proxies straight through to the real backend —
+ * skipping this app's route handler entirely and coming back with the
+ * `{ success, data }` envelope instead of the handler's already-unwrapped
+ * shape. `productListResponseSchema` accepts either.
  */
 export type SearchProductsParams = {
   query: string;
@@ -31,5 +34,5 @@ export async function searchProducts({
     signal,
   });
 
-  return productListSchema.parse(response.data).items;
+  return productListResponseSchema.parse(response.data).items;
 }

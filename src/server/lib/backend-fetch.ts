@@ -10,8 +10,16 @@ import { ApiError } from "@/lib/api/errors";
  * `NEXT_PUBLIC_` prefix, so it never leaks into the client bundle), and it
  * unwraps the `{ success, data }` envelope every backend response shares so
  * callers work with the payload directly.
+ *
+ * This must be an *absolute* URL — `http(s)://host/...` — never a bare path
+ * like `/api/v1`. A relative path only resolves against "the current page",
+ * which is a browser concept; `NEXT_PUBLIC_API_BASE_URL` (the one `apiClient`
+ * uses) is deliberately relative so nginx can proxy it same-origin, but this
+ * server process makes its own outbound HTTP call with no browser page behind
+ * it, so `new URL()` below throws immediately on a relative base. Do not
+ * point this at `NEXT_PUBLIC_API_BASE_URL`.
  */
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3030/api/v1";
+const BASE_URL = process.env.API_BASE_URL ?? "http://localhost:3030/api/v1";
 
 export type BackendParams = Record<string, string | number | boolean | undefined>;
 
