@@ -92,6 +92,7 @@ const ja = {
   paginationNext: "次へ",
   paginationStatus: "{page} / {totalPages}ページ",
   detailSpecs: "詳細スペック",
+  detailDescription: "商品説明",
   detailAddToCart: "カートに追加",
   detailBack: "一覧に戻る",
   specShowAll: "詳細スペックをすべて見る",

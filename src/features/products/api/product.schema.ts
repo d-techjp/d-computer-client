@@ -51,4 +51,14 @@ export const productSchema = z.object({
 
 export const productListSchema = paginatedSchema(productSchema);
 
+/**
+ * The long-form product description lives behind its own endpoint rather than
+ * on the product entity — it is rich-text HTML from the admin's editor and
+ * would bloat every listing response if it rode along with the card fields.
+ */
+export const productDescriptionSchema = z.object({
+  productId: z.string(),
+  content: z.string(),
+});
+
 export type ProductDto = z.infer<typeof productSchema>;

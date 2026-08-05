@@ -96,6 +96,7 @@ const vi: typeof ja = {
   paginationNext: "Sau",
   paginationStatus: "Trang {page} / {totalPages}",
   detailSpecs: "Cấu hình chi tiết",
+  detailDescription: "Mô tả sản phẩm",
   detailAddToCart: "Thêm vào giỏ hàng",
   detailBack: "Quay lại danh sách",
   specShowAll: "Xem đầy đủ thông số kỹ thuật",

@@ -1,6 +1,10 @@
 import "server-only";
 
-import { productListSchema, productSchema } from "@/features/products/api/product.schema";
+import {
+  productDescriptionSchema,
+  productListSchema,
+  productSchema,
+} from "@/features/products/api/product.schema";
 import {
   DEFAULT_SORT,
   PRICE_BUCKET_BOUNDS,
@@ -84,6 +88,27 @@ export async function getProduct(slug: string): Promise<Product | null> {
     return productSchema.parse(data);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+/**
+ * Rich-text HTML for the detail page's description section. Keyed by product
+ * *id*, so it can only be fetched once `getProduct` has resolved the slug —
+ * an unavoidable second hop given the endpoint's shape.
+ *
+ * A product with no description yet is the normal case, not an error: the
+ * endpoint answers with an empty string, and a 404 is folded into the same
+ * "nothing to render" result.
+ */
+export async function getProductDescription(id: string): Promise<string> {
+  try {
+    const data = await backendFetch<unknown>(
+      `/products/${encodeURIComponent(id)}/description`,
+    );
+    return productDescriptionSchema.parse(data).content.trim();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return "";
     throw error;
   }
 }

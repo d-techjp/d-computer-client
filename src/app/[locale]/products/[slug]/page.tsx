@@ -10,7 +10,7 @@ import { discountPercent, isInStock, productImage, specRows } from "@/features/p
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { formatPrice } from "@/lib/format/currency";
-import { getProduct } from "@/server/services/product.service";
+import { getProduct, getProductDescription } from "@/server/services/product.service";
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
@@ -51,9 +51,14 @@ export default async function ProductPage({ params }: PageProps) {
   // Renders the nearest not-found.tsx instead of crashing on `product.name`.
   if (!product) notFound();
 
+  // Sequential rather than concurrent: the description endpoint is keyed by
+  // product id, which only exists once the slug lookup above has resolved.
+  const description = await getProductDescription(product.id);
+
   const discount = discountPercent(product);
   const outOfStock = !isInStock(product);
   const specs = specRows(product);
+  const blurb = product.shortDescription ?? product.description;
 
   return (
     <div className="shell py-8 md:py-10">
@@ -106,10 +111,11 @@ export default async function ProductPage({ params }: PageProps) {
             ) : null}
           </div>
 
-          {product.description ? (
-            <p className="mb-6 text-[14.5px] leading-[1.75] text-ink-muted">
-              {product.description}
-            </p>
+          {/* The short blurb only. The long rich-text description gets a
+              full-width section of its own below the fold-line, where it has
+              room to hold headings and images. */}
+          {blurb ? (
+            <p className="mb-6 text-[14.5px] leading-[1.75] text-ink-muted">{blurb}</p>
           ) : null}
 
           <AddToCart product={product} disabled={outOfStock} />
@@ -144,6 +150,21 @@ export default async function ProductPage({ params }: PageProps) {
           </ul>
         </div>
       </div>
+
+      {description ? (
+        <section className="mt-12 border-t border-line-soft pt-8 md:mt-16 md:pt-10">
+          <h2 className="mb-5 border-l-[5px] border-accent pl-3.5 text-[20px] font-black md:text-[24px]">
+            {t.detailDescription}
+          </h2>
+          {/* Capped for readability: body copy running the full 1400px shell
+              is a wall of text no one finishes. Same rich-text styling the
+              article body uses — both come out of the same admin editor. */}
+          <div
+            className="rich-text max-w-[860px] text-[14.5px] leading-[1.9] text-ink-body"
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }

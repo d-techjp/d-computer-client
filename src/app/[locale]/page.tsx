@@ -14,7 +14,10 @@ import { listProducts } from "@/server/services/product.service";
 // must never be frozen into a static HTML file at build time.
 export const dynamic = "force-dynamic";
 
-const FEATURED_LIMIT = 4;
+// Products feed a sliding carousel (3 per panel), so it takes a deeper list
+// than the plain 4-across article teaser grid below it.
+const FEATURED_PRODUCTS_LIMIT = 10;
+const FEATURED_ARTICLES_LIMIT = 4;
 
 /**
  * A Server Component. It reads the data layer *directly* rather than fetching
@@ -34,14 +37,14 @@ export default async function HomePage({
   const [t, featured, articleListing] = await Promise.all([
     getDictionary(locale),
     // The home page shows a shortlist; the full catalogue lives at /products.
-    listProducts({ limit: FEATURED_LIMIT, isFeatured: true }),
-    listArticles({ limit: FEATURED_LIMIT }),
+    listProducts({ limit: FEATURED_PRODUCTS_LIMIT, isFeatured: true }),
+    listArticles({ limit: FEATURED_ARTICLES_LIMIT }),
   ]);
 
   // Falls back to the plain catalogue when nothing is flagged `isFeatured`
   // yet, so the section is never empty on a freshly seeded catalogue.
   const products =
-    featured.length > 0 ? featured : await listProducts({ limit: FEATURED_LIMIT });
+    featured.length > 0 ? featured : await listProducts({ limit: FEATURED_PRODUCTS_LIMIT });
 
   return (
     <>

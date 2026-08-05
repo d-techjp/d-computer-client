@@ -35,7 +35,10 @@ export function ProductCard({
   return (
     <Link
       href={`/${locale}/products/${product.slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-line-soft bg-white transition-[transform,box-shadow] duration-300 hover:-translate-y-2 hover:shadow-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      // `h-full` is what keeps a row of cards the same height. Grid and flex
+      // both stretch the *cell*, but the card only grew to its own content,
+      // so one two-line product name left its neighbours visibly short.
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-line-soft bg-white transition-[transform,box-shadow] duration-300 hover:-translate-y-2 hover:shadow-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div className="relative aspect-4/3 bg-mist">
         {outOfStock ? (
@@ -65,9 +68,14 @@ export function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="mb-1.5 text-[15px] font-bold">{product.name}</h3>
+        {/* Clamped so one unusually long name cannot stretch every card in
+            the row to match it. `min-h` reserves both lines up front, which
+            keeps the price rows on the same baseline across the row. */}
+        <h3 className="mb-1.5 line-clamp-2 min-h-[2.75em] text-[15px] leading-snug font-bold">
+          {product.name}
+        </h3>
         {product.shortDescription ? (
-          <p className="mb-3 text-[12.5px] leading-normal text-ink-subtle">
+          <p className="mb-3 line-clamp-2 text-[12.5px] leading-normal text-ink-subtle">
             {product.shortDescription}
           </p>
         ) : null}

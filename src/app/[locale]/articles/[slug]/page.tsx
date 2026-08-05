@@ -84,7 +84,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
       {/* Content is author-produced HTML from our own CMS, not user input. */}
       <div
-        className="article-content text-[14.5px] leading-[1.9] text-ink-body"
+        className="rich-text text-[14.5px] leading-[1.9] text-ink-body"
         dangerouslySetInnerHTML={{ __html: article.content }}
       />
 
