@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api/errors";
  * unwraps the `{ success, data }` envelope every backend response shares so
  * callers work with the payload directly.
  */
-const BASE_URL = process.env.API_BASE_URL ?? "http://localhost:3030/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3030/api/v1";
 
 export type BackendParams = Record<string, string | number | boolean | undefined>;
 
