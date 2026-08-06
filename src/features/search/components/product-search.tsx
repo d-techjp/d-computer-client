@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { SearchIcon } from "@/components/ui/icons";
-import { productImage } from "@/features/products/types";
+import { displayPrice, productImage } from "@/features/products/types";
 import { useIsPanelOpen, useUiStore } from "@/features/layout/store/ui.store";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -117,7 +117,7 @@ export function ProductSearch() {
                       </span>
                     </span>
                     <span className="flex-none text-[13px] font-bold text-accent tabular-nums">
-                      {formatPrice(product.price)}
+                      {formatPrice(displayPrice(product))}
                     </span>
                   </Link>
                 </li>

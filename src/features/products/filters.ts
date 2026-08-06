@@ -36,9 +36,9 @@ export const DEFAULT_SORT: SortOption = "featured";
 export function sortParams(sort: SortOption): { sortBy: string; sortOrder: "ASC" | "DESC" } {
   switch (sort) {
     case "price-asc":
-      return { sortBy: "price", sortOrder: "ASC" };
+      return { sortBy: "minPrice", sortOrder: "ASC" };
     case "price-desc":
-      return { sortBy: "price", sortOrder: "DESC" };
+      return { sortBy: "minPrice", sortOrder: "DESC" };
     case "name":
       return { sortBy: "name", sortOrder: "ASC" };
     case "featured":

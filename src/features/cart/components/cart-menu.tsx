@@ -123,7 +123,7 @@ export function CartMenu() {
                 <ul className="flex-1 overflow-y-auto lg:max-h-[310px] lg:flex-none">
                   {lines.map((line) => (
                     <li
-                      key={line.slug}
+                      key={line.id}
                       className="flex items-center gap-3 border-b border-mist px-5 py-3.5"
                     >
                       <span className="relative size-[54px] flex-none overflow-hidden rounded-[10px] bg-mist">
@@ -134,6 +134,9 @@ export function CartMenu() {
                         <span className="mb-1 block truncate text-[13px] font-semibold">
                           {line.name}
                         </span>
+                        <span className="mb-1 block truncate text-[11.5px] text-ink-faint">
+                          {line.variantName} · {line.sku}
+                        </span>
                         <span className="block text-[13px] font-bold text-accent">
                           {formatPrice(line.unitPrice * line.quantity)}
                         </span>
@@ -142,7 +145,7 @@ export function CartMenu() {
                       <span className="flex flex-col items-end gap-1.5">
                         <button
                           type="button"
-                          onClick={() => remove(line.slug)}
+                          onClick={() => remove(line.id)}
                           aria-label={`${t.cartRemove} ${line.name}`}
                           className="cursor-pointer text-[11.5px] text-ink-faint transition-colors hover:text-accent"
                         >
@@ -151,8 +154,8 @@ export function CartMenu() {
                         <QuantityStepper
                           size="sm"
                           value={line.quantity}
-                          onIncrement={() => increment(line.slug)}
-                          onDecrement={() => decrement(line.slug)}
+                          onIncrement={() => increment(line.id)}
+                          onDecrement={() => decrement(line.id)}
                           labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}
                         />
                       </span>

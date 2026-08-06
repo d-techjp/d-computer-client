@@ -4,7 +4,13 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
 
-import type { Product } from "@/features/products/types";
+import {
+  defaultVariant,
+  productImage,
+  variantImages,
+  type Product,
+  type ProductVariant,
+} from "@/features/products/types";
 
 /**
  * A cart line snapshots the price *at the moment of adding* — standard
@@ -12,8 +18,12 @@ import type { Product } from "@/features/products/types";
  * waiting on a catalogue fetch.
  */
 export type CartLine = {
+  id: string;
   slug: string;
+  variantId: string;
+  sku: string;
   name: string;
+  variantName: string;
   image: string;
   unitPrice: number;
   quantity: number;
@@ -25,10 +35,11 @@ type CartState = {
 
 type CartActions = {
   add: (product: Product, quantity?: number) => void;
-  remove: (slug: string) => void;
-  setQuantity: (slug: string, quantity: number) => void;
-  increment: (slug: string) => void;
-  decrement: (slug: string) => void;
+  addVariant: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  remove: (id: string) => void;
+  setQuantity: (id: string, quantity: number) => void;
+  increment: (id: string) => void;
+  decrement: (id: string) => void;
   clear: () => void;
 };
 
@@ -41,53 +52,37 @@ export const useCartStore = create<CartStore>()(
 
       add: (product, quantity = 1) =>
         set((state) => {
-          const existing = state.lines.find((line) => line.slug === product.slug);
-
-          if (existing) {
-            return {
-              lines: state.lines.map((line) =>
-                line.slug === product.slug
-                  ? { ...line, quantity: line.quantity + quantity }
-                  : line,
-              ),
-            };
-          }
-
-          return {
-            lines: [
-              ...state.lines,
-              {
-                slug: product.slug,
-                name: product.name,
-                image: product.thumbnail ?? "/images/pc1.png",
-                unitPrice: product.price,
-                quantity,
-              },
-            ],
-          };
+          const variant = defaultVariant(product);
+          if (!variant) return state;
+          return addCartLine(state, product, variant, quantity);
         }),
 
-      remove: (slug) =>
-        set((state) => ({ lines: state.lines.filter((line) => line.slug !== slug) })),
+      addVariant: (product, variant, quantity = 1) =>
+        set((state) => {
+          return addCartLine(state, product, variant, quantity);
+        }),
 
-      setQuantity: (slug, quantity) =>
+      remove: (id) =>
+        set((state) => ({ lines: state.lines.filter((line) => line.id !== id) })),
+
+      setQuantity: (id, quantity) =>
         set((state) => ({
           lines: state.lines.map((line) =>
-            line.slug === slug ? { ...line, quantity: Math.max(1, quantity) } : line,
+            line.id === id ? { ...line, quantity: Math.max(1, quantity) } : line,
           ),
         })),
 
-      increment: (slug) =>
+      increment: (id) =>
         set((state) => ({
           lines: state.lines.map((line) =>
-            line.slug === slug ? { ...line, quantity: line.quantity + 1 } : line,
+            line.id === id ? { ...line, quantity: line.quantity + 1 } : line,
           ),
         })),
 
-      decrement: (slug) =>
+      decrement: (id) =>
         set((state) => ({
           lines: state.lines.map((line) =>
-            line.slug === slug
+            line.id === id
               ? { ...line, quantity: Math.max(1, line.quantity - 1) }
               : line,
           ),
@@ -98,7 +93,7 @@ export const useCartStore = create<CartStore>()(
     {
       name: "d-computer-client.cart",
       storage: createJSONStorage(() => localStorage),
-      version: 2,
+      version: 3,
       // Actions are recreated on every load; only data belongs in storage.
       partialize: (state) => ({ lines: state.lines }),
       // The server has no localStorage, so SSR always renders an empty cart.
@@ -108,6 +103,41 @@ export const useCartStore = create<CartStore>()(
     },
   ),
 );
+
+function addCartLine(
+  state: CartState,
+  product: Product,
+  variant: ProductVariant,
+  quantity: number,
+): CartState {
+  const id = `${product.slug}:${variant.id}`;
+  const existing = state.lines.find((line) => line.id === id);
+
+  if (existing) {
+    return {
+      lines: state.lines.map((line) =>
+        line.id === id ? { ...line, quantity: line.quantity + quantity } : line,
+      ),
+    };
+  }
+
+  return {
+    lines: [
+      ...state.lines,
+      {
+        id,
+        slug: product.slug,
+        variantId: variant.id,
+        sku: variant.sku,
+        name: product.name,
+        variantName: variant.name,
+        image: variantImages(product, variant)[0] ?? productImage(product),
+        unitPrice: variant.price,
+        quantity,
+      },
+    ],
+  };
+}
 
 /* ---------------------------------------------------------------------------
  * Selector hooks.
@@ -131,6 +161,7 @@ export const useCartActions = () =>
   useCartStore(
     useShallow((state) => ({
       add: state.add,
+      addVariant: state.addVariant,
       remove: state.remove,
       setQuantity: state.setQuantity,
       increment: state.increment,

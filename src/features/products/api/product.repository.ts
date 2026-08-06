@@ -1,7 +1,8 @@
 import { apiClient } from "@/lib/api/client";
 
 import type { Product } from "../types";
-import { productListResponseSchema } from "./product.schema";
+import type { ProductBundleItem } from "../types";
+import { bundleItemListResponseSchema, productListResponseSchema } from "./product.schema";
 
 /**
  * Repository pattern: components ask for *products*, not for a URL.
@@ -35,4 +36,9 @@ export async function searchProducts({
   });
 
   return productListResponseSchema.parse(response.data).items;
+}
+
+export async function getBundleItems(variantId: string): Promise<ProductBundleItem[]> {
+  const response = await apiClient.get(`/variants/${variantId}/bundle-items`);
+  return bundleItemListResponseSchema.parse(response.data);
 }

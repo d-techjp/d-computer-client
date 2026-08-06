@@ -5,7 +5,14 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
 import { formatPrice } from "@/lib/format/currency";
 
-import { discountPercent, isInStock, productImage, type Product } from "../types";
+import {
+  discountPercent,
+  displayCompareAtPrice,
+  displayPrice,
+  isInStock,
+  productImage,
+  type Product,
+} from "../types";
 
 /**
  * Presentational and server-rendered. A `Link` gets crawlability, middle-click
@@ -31,6 +38,8 @@ export function ProductCard({
 }) {
   const discount = discountPercent(product);
   const outOfStock = !isInStock(product);
+  const price = displayPrice(product);
+  const compareAtPrice = displayCompareAtPrice(product);
 
   return (
     <Link
@@ -96,11 +105,11 @@ export function ProductCard({
         <div className="mt-auto flex items-end justify-between gap-2">
           <span>
             <span className="block text-[17px] leading-tight font-black text-accent tabular-nums">
-              {formatPrice(product.price)}
+              {formatPrice(price)}
             </span>
-            {discount > 0 && product.compareAtPrice ? (
+            {discount > 0 && compareAtPrice ? (
               <span className="block text-[11.5px] text-ink-faint line-through tabular-nums">
-                {formatPrice(product.compareAtPrice)}
+                {formatPrice(compareAtPrice)}
               </span>
             ) : null}
           </span>
