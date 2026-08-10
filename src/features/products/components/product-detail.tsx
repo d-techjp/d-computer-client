@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { CloseIcon } from "@/components/ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/ui/icons";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { BADGE_ICONS } from "@/config/glyphs";
 import { useCartActions } from "@/features/cart/store/cart.store";
@@ -68,6 +68,7 @@ export function ProductDetail({
     variantId: string;
     image: string;
   } | null>(null);
+  const [imageSlideDirection, setImageSlideDirection] = useState<-1 | 0 | 1>(0);
   const overrideImage =
     selectedImageOverride && selectedImageOverride.variantId === selectedVariant?.id
       ? selectedImageOverride.image
@@ -80,7 +81,9 @@ export function ProductDetail({
   const openPanel = useUiStore((state) => state.open);
 
   const discount = selectedVariant ? variantDiscountPercent(selectedVariant) : 0;
-  const outOfStock = product.status !== "active" || !isVariantInStock(selectedVariant);
+  const notForSale = Boolean(selectedVariant && !selectedVariant.isActive);
+  const outOfStock = product.status !== "active" || !notForSale && !isVariantInStock(selectedVariant);
+  const purchaseDisabled = notForSale || outOfStock || !selectedVariant;
   const showVariantPicker = product.hasVariants || product.variants.length > 1;
 
   const handleAdd = () => {
@@ -88,13 +91,26 @@ export function ProductDetail({
     addVariant(product, selectedVariant, quantity);
     openPanel("cart");
   };
+  const selectImage = (image: string, direction: -1 | 0 | 1 = 0) => {
+    setImageSlideDirection(direction);
+    setSelectedImageOverride({ variantId: selectedVariant?.id ?? "", image });
+  };
+  const selectImageByOffset = (offset: -1 | 1) => {
+    const currentIndex = Math.max(0, displayedImages.indexOf(selectedImage));
+    const nextIndex = (currentIndex + offset + displayedImages.length) % displayedImages.length;
+    selectImage(displayedImages[nextIndex], offset);
+  };
 
   return (
     <>
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:gap-14">
         <section aria-label={t.detailSelectedImage}>
-          <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-mist">
-            {outOfStock ? (
+          <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-mist cursor-pointer">
+            {notForSale ? (
+              <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
+                {t.badgeNotForSale}
+              </span>
+            ) : outOfStock ? (
               <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
                 {t.badgeOutOfStock}
               </span>
@@ -111,23 +127,46 @@ export function ProductDetail({
               className="absolute inset-0 cursor-zoom-in"
             >
               <Image
+                key={selectedImage}
                 src={selectedImage}
                 alt={product.name}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 660px"
-                className="object-contain p-4"
+                className={cn(
+                  "object-contain p-4",
+                  imageSlideDirection === 1 && "product-image-slide-from-right",
+                  imageSlideDirection === -1 && "product-image-slide-from-left",
+                )}
               />
             </button>
+            {displayedImages.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => selectImageByOffset(-1)}
+                  aria-label={t.detailPrevImage}
+                  className="absolute top-1/2 left-3 z-20 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-ink-body shadow-pop transition-colors hover:text-accent md:size-10"
+                >
+                  <ChevronLeftIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectImageByOffset(1)}
+                  aria-label={t.detailNextImage}
+                  className="absolute top-1/2 right-3 z-20 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-ink-body shadow-pop transition-colors hover:text-accent md:size-10"
+                >
+                  <ChevronRightIcon />
+                </button>
+              </>
+            ) : null}
           </div>
 
           <ImageStrip
             images={displayedImages}
             selectedImage={selectedImage}
             productName={product.name}
-            onSelect={(image) =>
-              setSelectedImageOverride({ variantId: selectedVariant?.id ?? "", image })
-            }
+            onSelect={(image) => selectImage(image)}
           />
         </section>
 
@@ -166,7 +205,10 @@ export function ProductDetail({
             <VariantPicker
               product={product}
               selectedVariant={selectedVariant}
-              onSelect={setSelectedVariantId}
+              onSelect={(variantId) => {
+                setImageSlideDirection(0);
+                setSelectedVariantId(variantId);
+              }}
             />
           ) : null}
 
@@ -183,10 +225,10 @@ export function ProductDetail({
             />
             <Button
               onClick={handleAdd}
-              disabled={outOfStock || !selectedVariant}
+              disabled={purchaseDisabled}
               className="flex-1"
             >
-              {outOfStock ? t.badgeOutOfStock : t.detailAddToCart}
+              {notForSale ? t.badgeNotForSale : outOfStock ? t.badgeOutOfStock : t.detailAddToCart}
             </Button>
           </div>
 
@@ -233,29 +275,88 @@ function ImageStrip({
   productName: string;
   onSelect: (image: string) => void;
 }) {
+  const { t } = useI18n();
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canScroll, setCanScroll] = useState(false);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const updateCanScroll = () => {
+      setCanScroll(scroller.scrollWidth > scroller.clientWidth + 1);
+    };
+    const frame = window.requestAnimationFrame(updateCanScroll);
+    const observer = new ResizeObserver(updateCanScroll);
+    observer.observe(scroller);
+    window.addEventListener("resize", updateCanScroll);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", updateCanScroll);
+    };
+  }, [images]);
+
   if (images.length <= 1) return null;
 
+  const scrollByPage = (direction: -1 | 1) => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollBy({
+      left: direction * Math.max(120, scroller.clientWidth * 0.8),
+      behavior: "smooth",
+    });
+  };
+
   return (
-    <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6 cursor-pointer">
-      {images.map((image, index) => (
+    <div className="mt-3 flex items-center gap-2">
+      {canScroll ? (
         <button
-          key={image}
           type="button"
-          onClick={() => onSelect(image)}
-          className={cn(
-            "relative aspect-square overflow-hidden rounded-lg border bg-white transition-colors",
-            image === selectedImage ? "border-accent" : "border-line-soft hover:border-line-strong",
-          )}
+          onClick={() => scrollByPage(-1)}
+          aria-label={t.detailPrevImage}
+          className="flex size-9 flex-none cursor-pointer items-center justify-center rounded-full border border-line-soft bg-white text-ink-muted transition-colors hover:border-accent hover:text-accent"
         >
-          <Image
-            src={image}
-            alt={`${productName} ${index + 1}`}
-            fill
-            sizes="96px"
-            className="object-contain p-1.5"
-          />
+          <ChevronLeftIcon />
         </button>
-      ))}
+      ) : null}
+      <div
+        ref={scrollerRef}
+        className="flex min-w-0 flex-1 snap-x gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {images.map((image, index) => (
+          <button
+            key={image}
+            type="button"
+            onClick={() => onSelect(image)}
+            className={cn(
+              "relative aspect-square size-[72px] flex-none snap-start overflow-hidden rounded-lg border bg-white transition-colors sm:size-[84px]",
+              image === selectedImage
+                ? "border-accent"
+                : "border-line-soft hover:border-line-strong",
+            )}
+          >
+            <Image
+              src={image}
+              alt={`${productName} ${index + 1}`}
+              fill
+              sizes="84px"
+              className="object-contain p-1.5"
+            />
+          </button>
+        ))}
+      </div>
+      {canScroll ? (
+        <button
+          type="button"
+          onClick={() => scrollByPage(1)}
+          aria-label={t.detailNextImage}
+          className="flex size-9 flex-none cursor-pointer items-center justify-center rounded-full border border-line-soft bg-white text-ink-muted transition-colors hover:border-accent hover:text-accent"
+        >
+          <ChevronRightIcon />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -297,14 +398,15 @@ function VariantPicker({
       <div className="grid grid-cols-2 gap-2">
         {product.variants.map((variant) => {
           const active = variant.id === selectedVariant?.id;
-          const disabled = !isVariantInStock(variant);
+          const notForSale = !variant.isActive;
+          const outOfStock = !notForSale && !isVariantInStock(variant);
 
           return (
             <button
               key={variant.id}
               type="button"
               onClick={() => onSelect(variant.id)}
-              disabled={!variant.isActive}
+              disabled={notForSale}
               aria-pressed={active}
               className={cn(
                 "flex min-h-[96px] min-w-0 flex-col rounded-lg border px-2.5 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-55 sm:px-3",
@@ -324,7 +426,11 @@ function VariantPicker({
                     {value.value}
                   </span>
                 ))}
-                {disabled ? (
+                {notForSale ? (
+                  <span className="rounded bg-ink-strong px-2 py-[3px] text-[11px] font-semibold text-white">
+                    {t.badgeNotForSale}
+                  </span>
+                ) : outOfStock ? (
                   <span className="rounded bg-ink-strong px-2 py-[3px] text-[11px] font-semibold text-white">
                     {t.badgeOutOfStock}
                   </span>

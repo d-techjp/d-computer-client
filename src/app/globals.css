@@ -216,6 +216,38 @@
   }
 }
 
+@keyframes product-image-slide-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes product-image-slide-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.product-image-slide-from-right {
+  animation: product-image-slide-from-right 240ms ease-out both;
+}
+
+.product-image-slide-from-left {
+  animation: product-image-slide-from-left 240ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
