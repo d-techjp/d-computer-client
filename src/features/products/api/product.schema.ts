@@ -15,18 +15,29 @@ export const productTypeSchema = z.enum(["standard", "bundle", "service"]);
 export const bundleInventoryPolicySchema = z.enum(["derived_from_components", "own_stock"]);
 
 /**
- * `specifications` is admin-authored free text (`{ "CPU": "i5-1235U" }`), not
- * a typed facet — coerced to strings defensively in case a value was entered
- * as a number.
+ * `specifications` is admin-authored ordered display data, not a typed facet.
+ * Values are coerced defensively in case an admin-entered number comes through.
  */
+const specificationItemSchema = z.object({
+  name: z.string(),
+  value: z.unknown().transform((value) => String(value)),
+  position: z.number().optional().default(0),
+});
+
 const specificationsSchema = z
-  .record(z.string(), z.unknown())
+  .union([
+    z.array(specificationItemSchema),
+    z.record(z.string(), z.unknown()).transform((value) =>
+      Object.entries(value).map(([name, specValue], position) => ({
+        name,
+        value: String(specValue),
+        position,
+      })),
+    ),
+  ])
   .nullable()
-  .transform((value) =>
-    value
-      ? Object.fromEntries(Object.entries(value).map(([key, v]) => [key, String(v)]))
-      : null,
-  );
+  .optional()
+  .transform((value) => value ?? null);
 
 const imageListSchema = z
   .array(z.string())

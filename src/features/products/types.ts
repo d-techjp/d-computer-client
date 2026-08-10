@@ -67,11 +67,17 @@ export type ProductBundleItem = {
   };
 };
 
+export type ProductSpecification = {
+  name: string;
+  value: string;
+  position: number;
+};
+
 /**
  * The shape a component consumes, mirroring the real backend's product
  * entity: one price (not a per-locale price book — the storefront prices in
  * VND only), an optional `compareAtPrice` for a strike-through instead of a
- * standing discount percentage, and a free-form `specifications` object
+ * standing discount percentage, and ordered display-only `specifications`
  * instead of typed facet attributes.
  */
 export type Product = {
@@ -91,7 +97,7 @@ export type Product = {
   isFeatured: boolean;
   viewCount: number;
   soldCount: number;
-  specifications: Record<string, string> | null;
+  specifications: ProductSpecification[] | null;
   category: CategoryRef | null;
   brand: BrandRef | null;
   variants: ProductVariant[];
@@ -166,7 +172,9 @@ export function variantDiscountPercent(
 
 export function specRows(product: Pick<Product, "specifications">): SpecRow[] {
   if (!product.specifications) return [];
-  return Object.entries(product.specifications).map(([label, value]) => ({ label, value }));
+  return [...product.specifications]
+    .sort((left, right) => left.position - right.position)
+    .map((spec) => ({ label: spec.name, value: spec.value }));
 }
 
 function uniqueImages(values: (string | null | undefined)[]): string[] {
