@@ -30,39 +30,26 @@ export function ProductSearch() {
 
   const open = useIsPanelOpen("search");
   const openPanel = useUiStore((state) => state.open);
-  const toggle = useUiStore((state) => state.toggle);
   const close = useUiStore((state) => state.close);
   const ref = useDismissable<HTMLDivElement>(open, close);
 
-  const field = (autoFocus: boolean) => (
-    <input
-      value={term}
-      autoFocus={autoFocus}
-      onChange={(event) => {
-        setTerm(event.target.value);
-        openPanel("search");
-      }}
-      onFocus={() => openPanel("search")}
-      placeholder={t.searchPlaceholder}
-      aria-label={t.searchPlaceholder}
-      className="h-[33px] min-w-0 flex-1 border-none bg-transparent px-3.5 text-[13px] text-ink-body outline-none placeholder:text-ink-faint"
-    />
-  );
-
   return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => toggle("search")}
-        aria-expanded={open}
-        aria-label={t.searchPlaceholder}
-        className="flex size-9 cursor-pointer items-center justify-center rounded-lg border border-line-strong bg-white text-ink transition-colors hover:border-accent hover:text-accent md:hidden"
-      >
-        <SearchIcon />
-      </button>
-
-      <div className="hidden items-center overflow-hidden rounded-lg border border-line-strong bg-white focus-within:border-accent md:flex md:w-[190px] lg:w-[213px]">
-        {field(false)}
+    // The field is the control at every width — moving the cart to the bottom
+    // bar freed the header row on a phone, so the search no longer collapses
+    // to an icon that has to open a panel just to show an input.
+    <div className="relative w-full min-w-0 md:w-[190px] lg:w-[213px]" ref={ref}>
+      <div className="flex items-center overflow-hidden rounded-lg border border-line-strong bg-white focus-within:border-accent">
+        <input
+          value={term}
+          onChange={(event) => {
+            setTerm(event.target.value);
+            openPanel("search");
+          }}
+          onFocus={() => openPanel("search")}
+          placeholder={t.searchPlaceholder}
+          aria-label={t.searchPlaceholder}
+          className="h-[33px] min-w-0 flex-1 border-none bg-transparent px-3.5 text-[13px] text-ink-body outline-none placeholder:text-ink-faint"
+        />
         <span className="flex size-[38px] flex-none items-center justify-center bg-ink-strong text-white">
           <SearchIcon />
         </span>
@@ -73,19 +60,11 @@ export function ProductSearch() {
           role="listbox"
           className={cn(
             "absolute top-[calc(100%+10px)] right-0 z-60 w-[min(88vw,360px)] overflow-hidden rounded-xl border border-line-soft bg-white shadow-pop",
-            // With nothing typed the panel holds only the mobile input, so on
-            // desktop — where the input lives in the header — it has no reason
-            // to exist yet.
-            !enabled && "md:hidden",
+            // Nothing typed means nothing to list — the input is in the header
+            // now, so an empty panel would be a box with no content in it.
+            !enabled && "hidden",
           )}
         >
-          <div className="flex items-center border-b border-line-faint md:hidden">
-            {field(true)}
-            <span className="flex size-[38px] flex-none items-center justify-center bg-ink-strong text-white">
-              <SearchIcon />
-            </span>
-          </div>
-
           {!enabled ? null : status === "loading" ? (
             <SearchSkeleton />
           ) : status === "error" ? (

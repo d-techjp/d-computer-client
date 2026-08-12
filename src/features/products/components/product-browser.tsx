@@ -133,9 +133,7 @@ export function ProductBrowser({
 
   const filterPanelProps = {
     query: optimisticQuery,
-    categories,
     brands,
-    onSetCategory: handleSetCategory,
     onSetBrand: handleSetBrand,
     onSetPrice: handleSetPrice,
     onToggleInStock: handleToggleInStock,
@@ -144,7 +142,7 @@ export function ProductBrowser({
 
   return (
     <div className="flex gap-8 xl:gap-10">
-      {/* Wide enough for a fully written-out đồng price band — the longest
+      {/* Wide enough for a fully written-out price band — the longest
           filter label the sidebar produces. */}
       <aside className="hidden w-[264px] flex-none lg:block">
         <div className="sticky top-[88px] max-h-[calc(100vh-108px)] overflow-y-auto pr-1 pb-2">

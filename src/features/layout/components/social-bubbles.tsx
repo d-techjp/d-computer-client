@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type SocialBubble = {
   href: string;
@@ -35,30 +35,55 @@ const SOCIAL_BUBBLES: SocialBubble[] = [
 const STORAGE_KEY = "social-bubbles-visible";
 
 /**
+ * `localStorage` is an external store, so the preference is read through
+ * `useSyncExternalStore` rather than mirrored into `useState` from an effect:
+ * the server renders the expanded default, the client swaps to the stored
+ * value during hydration, and no cascading render happens in between.
+ */
+const listeners = new Set<() => void>();
+
+function subscribe(onStoreChange: () => void): () => void {
+  listeners.add(onStoreChange);
+  // Keeps two tabs in agreement — `storage` only fires in the *other* tabs.
+  window.addEventListener("storage", onStoreChange);
+
+  return () => {
+    listeners.delete(onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
+function isVisible(): boolean {
+  return window.localStorage.getItem(STORAGE_KEY) !== "hidden";
+}
+
+/** No storage on the server: render expanded, which is the first-visit state. */
+function isVisibleOnServer(): boolean {
+  return true;
+}
+
+function storeVisible(visible: boolean): void {
+  window.localStorage.setItem(STORAGE_KEY, visible ? "visible" : "hidden");
+  for (const listener of listeners) listener();
+}
+
+/**
  * Fixed vertical stack of social bubbles (Facebook / TikTok / Beacons), kept
  * small and edge-anchored so they never sit over primary content or the
  * mobile thumb-reach zone. Sits at z-40 — below the header/menu/cart overlays
  * (z-60/70/80) so it's correctly obscured whenever one of those is open.
  * A toggle button lets users collapse the stack if they find it distracting;
- * the choice is remembered across visits via localStorage.
+ * the choice is remembered across visits.
  */
 export function SocialBubbles() {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    if (window.localStorage.getItem(STORAGE_KEY) === "hidden") {
-      setVisible(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, visible ? "visible" : "hidden");
-  }, [visible]);
+  const visible = useSyncExternalStore(subscribe, isVisible, isVisibleOnServer);
 
   return (
     <nav
       aria-label="Mạng xã hội"
-      className="fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-2.5 sm:right-5 sm:bottom-7 sm:gap-3"
+      // Below `lg` the bottom edge belongs to `<CartBar>`, so the stack starts
+      // above it rather than overlapping the cart total.
+      className="fixed right-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-2.5 sm:right-5 sm:gap-3 lg:bottom-7"
     >
       {SOCIAL_BUBBLES.map(({ href, src, label, ringColor }, index) => (
         <a
@@ -97,7 +122,7 @@ export function SocialBubbles() {
 
       <button
         type="button"
-        onClick={() => setVisible((prev) => !prev)}
+        onClick={() => storeVisible(!visible)}
         aria-expanded={visible}
         aria-label={visible ? "Ẩn liên kết mạng xã hội" : "Hiện liên kết mạng xã hội"}
         className="flex size-7 items-center justify-center rounded-full bg-white/90 text-ink-strong shadow-lift ring-1 ring-black/5 backdrop-blur transition-transform duration-200 hover:scale-110 sm:size-8"

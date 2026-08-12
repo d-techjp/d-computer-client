@@ -46,11 +46,15 @@ export async function backendFetch<T>(
 
   try {
     response = await fetch(buildUrl(path, params), {
+      // Prices and stock change server-side, so the default is to always read
+      // the current state rather than serve a stale Next.js data-cache entry.
+      // Callers whose data is genuinely reference material — the category and
+      // brand lists the header and filter sidebar render on *every* page —
+      // opt out by passing `next: { revalidate }`, which would otherwise be
+      // ignored: `cache: "no-store"` and `next.revalidate` cannot both apply.
+      ...(init?.next === undefined ? { cache: "no-store" as const } : {}),
       ...init,
       headers: { "Content-Type": "application/json", ...init?.headers },
-      // Prices and stock change server-side; always read the current state
-      // rather than serving a stale Next.js data-cache entry.
-      cache: "no-store",
     });
   } catch (cause) {
     throw new ApiError("Failed to reach the backend", { code: "network_error", cause });

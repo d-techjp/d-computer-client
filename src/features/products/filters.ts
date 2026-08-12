@@ -20,7 +20,7 @@ export type PriceBucket = (typeof PRICE_BUCKETS)[number];
 
 export type PriceBound = { min: number; max: number | null };
 
-/** Bands are authored in VND — the only currency the backend prices in. */
+/** Bands are authored against the backend's raw numeric price values. */
 export const PRICE_BUCKET_BOUNDS: Record<PriceBucket, PriceBound> = {
   entry: { min: 0, max: 10_000_000 },
   mid: { min: 10_000_000, max: 20_000_000 },
@@ -128,6 +128,16 @@ export function toSearchParams(query: ProductQuery): URLSearchParams {
 export function toQueryString(query: ProductQuery): string {
   const params = toSearchParams(query).toString();
   return params ? `?${params}` : "";
+}
+
+/**
+ * A deep link into the listing pre-filtered to one category — what every
+ * category entry point outside `/products` (home rail, promo cards) points at.
+ * Built through `toQueryString` so those links can never drift from the param
+ * names the page parses.
+ */
+export function categoryHref(locale: string, categoryId: string): string {
+  return `/${locale}/products${toQueryString({ ...EMPTY_QUERY, categoryId })}`;
 }
 
 /* ------------------------------- mutation -------------------------------- */

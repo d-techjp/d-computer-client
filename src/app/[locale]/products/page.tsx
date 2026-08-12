@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductBrowser } from "@/features/products/components/product-browser";
+import { CategoryRail } from "@/features/products/components/category-rail";
 import { ProductGrid } from "@/features/products/components/product-grid";
 import {
   DEFAULT_SORT,
@@ -68,6 +69,12 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
     listBrands(),
   ]);
 
+  const selectedCategory = categories.find((category) => category.id === query.categoryId) ?? null;
+  const categoryRail = categories
+    .filter((category) => category.parentId === (selectedCategory?.id ?? null))
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name));
+  const pageTitle = selectedCategory?.name ?? t.listTitle;
+
   return (
     <div className="shell py-8 md:py-10">
       <nav aria-label="Breadcrumb" className="mb-4 text-[12.5px] text-ink-muted">
@@ -77,17 +84,19 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
         <span className="mx-2 text-ink-faint" aria-hidden>
           /
         </span>
-        <span className="font-semibold text-ink-body">{t.listTitle}</span>
+        <span className="font-semibold text-ink-body">{pageTitle}</span>
       </nav>
 
-      <header className="mb-7 max-w-[720px]">
-        <h1 className="mb-2.5 border-l-[5px] border-accent pl-3.5 text-[26px] leading-tight font-black md:text-[32px]">
-          {t.listTitle}
-        </h1>
-        <p className="text-[13.5px] leading-[1.75] text-ink-muted md:text-[14.5px]">
-          {t.listDesc}
+      <header className="mb-6 border-b border-line pb-6 md:mb-7 md:pb-7">
+        <p className="mb-2 text-[11px] font-black tracking-[1.4px] text-accent uppercase">
+          {t.companyName}
         </p>
+        <h1 className="max-w-[900px] text-[27px] leading-tight font-black md:text-[36px]">
+          {pageTitle}
+        </h1>
       </header>
+
+      <CategoryRail categories={categoryRail} locale={locale} />
 
       <ProductBrowser
         query={query}

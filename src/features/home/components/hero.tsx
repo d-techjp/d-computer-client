@@ -5,11 +5,12 @@ import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
 import { BlossomCluster } from "@/components/ui/icons";
-import { BADGE_ICONS } from "@/config/glyphs";
+import type { CategoryNode } from "@/features/catalog/tree";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils/cn";
 
 import { useHeroCarousel } from "../hooks/use-hero-carousel";
+import { CategoryHighlights } from "./category-highlights";
 
 const SLIDES = ["/images/pc1.png", "/images/card1.png", "/images/ram1.png"];
 
@@ -26,14 +27,19 @@ const PETALS = [
   { left: "68%", size: 8, duration: "9s", delay: "7s" },
 ];
 
-export function Hero() {
+/**
+ * The home page's main board: the rotating banner with a column of category
+ * shortcuts beside it. Browsing the catalogue by category is the header menu's
+ * job — these cards are the promoted handful, not the index.
+ */
+export function Hero({ categories }: { categories: CategoryNode[] }) {
   const { locale, t } = useI18n();
   const { index, phase, goTo } = useHeroCarousel(SLIDES.length);
 
   const hidden = phase === "out" || phase === "parked";
 
   return (
-    <section className="flex w-full items-stretch max-lg:flex-col">
+    <section className="flex w-full items-stretch border-b border-line max-lg:flex-col">
       <div className="relative min-w-0 flex-4 overflow-hidden">
         <div className="absolute inset-0 z-0 overflow-hidden">
           <Image
@@ -145,29 +151,7 @@ export function Hero() {
 
       {/* Stacked beside the hero on desktop; below `lg` it becomes a two-up
           grid rather than four boxes squeezed into one row. */}
-      <aside className="flex flex-1 flex-col justify-between gap-2 p-4 max-lg:grid max-lg:grid-cols-2 max-lg:pt-0 lg:min-w-[180px]">
-        {t.sideBadges.map((badge, badgeIndex) => {
-          const Icon = BADGE_ICONS[badgeIndex];
-
-          return (
-            <div
-              key={badge.title}
-              className="flex flex-1 flex-col justify-center gap-2 rounded border border-[#DEDEDE] px-4 py-[18px] transition-[transform,box-shadow] hover:-translate-y-1 hover:shadow-[0_8px_18px_oklch(15%_0.01_260/0.12)]"
-            >
-              <span
-                className="flex size-[34px] items-center justify-center rounded border border-[#9D9D9D] text-ink-strong"
-                aria-hidden
-              >
-                <Icon />
-              </span>
-              <span className="text-[13.5px] leading-[1.4] font-bold text-[#5D5D5D]">
-                {badge.title}
-              </span>
-              <span className="text-[11.5px] leading-[1.4] text-ink-body">{badge.sub}</span>
-            </div>
-          );
-        })}
-      </aside>
+      <CategoryHighlights categories={categories} />
     </section>
   );
 }

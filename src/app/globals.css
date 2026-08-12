@@ -23,6 +23,7 @@
 
   --color-accent: oklch(55% 0.18 25);
   --color-sakura: oklch(85% 0.07 350);
+  --color-stock: oklch(48% 0.13 155);
 
   --color-line: oklch(90% 0.005 90);
   --color-line-soft: oklch(93% 0.005 90);
@@ -50,6 +51,20 @@
   --animate-fade-in-up: fade-in-up 0.7s ease-out both;
   --animate-drift: drift 9s ease-in-out infinite alternate;
   --animate-slide-up: slide-up 0.25s ease-out both;
+  /* Hover-triggered surfaces (the category flyout) need to feel instant —
+     the 0.7s entrance above is an on-scroll reveal and reads as lag here. */
+  --animate-flyout: flyout 0.16s ease-out both;
+
+  @keyframes flyout {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 
   @keyframes fade-in-up {
     from {

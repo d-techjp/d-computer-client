@@ -51,11 +51,11 @@ export function FeaturedProducts({
           {products.map((product, index) => (
             <li
               key={product.slug}
-              // Widths leave a sliver of the next card visible at every
-              // breakpoint — the affordance that says "this scrolls" without
-              // needing a scrollbar. Four-up at `lg` restores the card size
-              // the listing grid uses.
-              className="w-[78%] flex-none snap-start xs:w-[46%] md:w-[31%] lg:w-[23.2%]"
+              // The larger home container would make a four-up carousel much
+              // bigger than the PLP grid beside its filter rail. Four-up at
+              // `md` and five-up at `lg` keep the cards equally dense while a
+              // visible sliver still signals that the track can be scrolled.
+              className="w-[78%] flex-none snap-start xs:w-[46%] md:w-[23.4%] lg:w-[18.4%]"
             >
               <ProductCard product={product} locale={locale} t={t} priority={index < 2} />
             </li>

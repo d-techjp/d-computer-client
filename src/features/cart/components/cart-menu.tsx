@@ -67,13 +67,19 @@ export function CartMenu() {
         <div className="fixed inset-0 z-60 bg-ink-strong/40 lg:hidden" aria-hidden />
       ) : null}
 
-      <div className="relative" ref={ref}>
+      {/* `max-lg:contents` rather than `max-lg:hidden`: below `lg` the trigger
+          lives in the bottom bar instead, but this wrapper still has to render
+          the panel. A hidden ancestor would take the panel down with it, and
+          removing the wrapper's box entirely also stops it from leaving a gap
+          in the header's icon row. `relative` only matters at `lg`, where the
+          panel is an anchored dropdown. */}
+      <div className="relative max-lg:contents" ref={ref}>
         <button
           type="button"
           onClick={() => toggle("cart")}
           aria-expanded={open}
           aria-label={t.cartTitle}
-          className="relative cursor-pointer"
+          className="relative cursor-pointer max-lg:hidden"
         >
           <CartIcon />
           {/* Suppressed until rehydration: the server cannot know the stored

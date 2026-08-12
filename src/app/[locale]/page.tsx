@@ -5,9 +5,11 @@ import { CustomPcSection } from "@/features/home/components/custom-pc-section";
 import { FeaturedProducts } from "@/features/home/components/featured-products";
 import { Hero } from "@/features/home/components/hero";
 import { TrustBar } from "@/features/home/components/trust-bar";
+import { buildCategoryTree } from "@/features/catalog/tree";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listArticles } from "@/server/services/article.service";
+import { listCategories } from "@/server/services/catalog.service";
 import { listProducts } from "@/server/services/product.service";
 
 // Stock, prices and featured flags come from the live backend — this page
@@ -34,11 +36,12 @@ export default async function HomePage({
   if (!isLocale(locale)) notFound();
 
   // Independent reads run concurrently instead of serialising into a waterfall.
-  const [t, featured, articleListing] = await Promise.all([
+  const [t, featured, articleListing, categories] = await Promise.all([
     getDictionary(locale),
     // The home page shows a shortlist; the full catalogue lives at /products.
     listProducts({ limit: FEATURED_PRODUCTS_LIMIT, isFeatured: true }),
     listArticles({ limit: FEATURED_ARTICLES_LIMIT }),
+    listCategories(),
   ]);
 
   // Falls back to the plain catalogue when nothing is flagged `isFeatured`
@@ -48,7 +51,7 @@ export default async function HomePage({
 
   return (
     <>
-      <Hero />
+      <Hero categories={buildCategoryTree(categories)} />
       <TrustBar t={t} />
       <FeaturedProducts products={products} locale={locale} t={t} />
       <CustomPcSection t={t} />

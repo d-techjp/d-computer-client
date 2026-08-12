@@ -38,6 +38,11 @@ const vi: typeof ja = {
   heroDesc:
     "Linh kiện chất lượng cao cùng kỹ thuật lắp ráp chuẩn xác, mang đến hiệu năng tối ưu cho mọi trải nghiệm.",
   heroCta: "Xem sản phẩm",
+  categoryRailTitle: "Danh mục sản phẩm",
+  categoryRailAll: "Tất cả sản phẩm",
+  categoryCardCount: "{count} sản phẩm",
+  categoryCardAllSub: "Lọc và tìm trong toàn bộ danh mục",
+  categoryMenuViewAll: "Xem tất cả {name}",
   productsTitle: "Sản phẩm nổi bật",
   viewAll: "Xem tất cả",
   customTitle1: "Chiếc PC của riêng bạn.",

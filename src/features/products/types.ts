@@ -75,9 +75,8 @@ export type ProductSpecification = {
 
 /**
  * The shape a component consumes, mirroring the real backend's product
- * entity: one price (not a per-locale price book — the storefront prices in
- * VND only), an optional `compareAtPrice` for a strike-through instead of a
- * standing discount percentage, and ordered display-only `specifications`
+ * entity: one price, an optional `compareAtPrice` for a strike-through instead
+ * of a standing discount percentage, and ordered display-only `specifications`
  * instead of typed facet attributes.
  */
 export type Product = {

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import type { Brand, Category } from "@/features/catalog/types";
+import type { Brand } from "@/features/catalog/types";
 import { CheckIcon } from "@/components/ui/icons";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils/cn";
@@ -17,15 +17,13 @@ import { PRICE_BUCKETS, activeFilterCount, type PriceBucket, type ProductQuery }
  * button — and it is why the same component can render in the desktop
  * sidebar and inside the mobile drawer without the two ever disagreeing.
  *
- * Each group is single-select — the backend only accepts one `categoryId`
- * and one `brandId` per request — so clicking an option replaces whatever
- * was selected in that group, and clicking it again clears it.
+ * Each group is single-select, so clicking an option replaces the previous
+ * selection and clicking it again clears it. Category navigation lives in the
+ * listing header instead of competing with filters in this panel.
  */
 export function ProductFilterPanel({
   query,
-  categories,
   brands,
-  onSetCategory,
   onSetBrand,
   onSetPrice,
   onToggleInStock,
@@ -35,9 +33,7 @@ export function ProductFilterPanel({
   className,
 }: {
   query: ProductQuery;
-  categories: Category[];
   brands: Brand[];
-  onSetCategory: (categoryId: string) => void;
   onSetBrand: (brandId: string) => void;
   onSetPrice: (bucket: PriceBucket) => void;
   onToggleInStock: () => void;
@@ -65,22 +61,8 @@ export function ProductFilterPanel({
         </div>
       ) : null}
 
-      {categories.length > 0 ? (
-        <FilterGroup title={t.filterGroups.category} first={!showHeading}>
-          {categories.map((category) => (
-            <FilterOption
-              key={category.id}
-              label={category.name}
-              indent={Boolean(category.parentId)}
-              checked={query.categoryId === category.id}
-              onChange={() => onSetCategory(category.id)}
-            />
-          ))}
-        </FilterGroup>
-      ) : null}
-
       {brands.length > 0 ? (
-        <FilterGroup title={t.filterGroups.brand}>
+        <FilterGroup title={t.filterGroups.brand} first={!showHeading}>
           {brands.map((brand) => (
             <FilterOption
               key={brand.id}
@@ -137,21 +119,14 @@ function FilterGroup({
 function FilterOption({
   label,
   checked,
-  indent = false,
   onChange,
 }: {
   label: string;
   checked: boolean;
-  indent?: boolean;
   onChange: () => void;
 }) {
   return (
-    <label
-      className={cn(
-        "group flex cursor-pointer items-center gap-2.5 text-[13px] select-none",
-        indent && "pl-3",
-      )}
-    >
+    <label className="group flex cursor-pointer items-center gap-2.5 text-[13px] select-none">
       <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
       <span
         className="flex size-[17px] flex-none items-center justify-center rounded-[5px] border-[1.5px] border-line-strong text-transparent transition-colors peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent group-hover:border-accent"

@@ -34,6 +34,13 @@ const ja = {
   heroTitle3: "。",
   heroDesc: "高品質パーツと確かな技術で、最高のパフォーマンスをお届けします。",
   heroCta: "製品を見る",
+  categoryRailTitle: "商品カテゴリ",
+  categoryRailAll: "すべての製品",
+  // `{count}` is substituted at render time with the category's product count.
+  categoryCardCount: "{count}件の製品",
+  categoryCardAllSub: "カタログ全体から絞り込んで探す",
+  // `{name}` is substituted at render time with the category's name.
+  categoryMenuViewAll: "{name}をすべて見る",
   productsTitle: "ちゅうもくしょうひん",
   viewAll: "一覧を見る",
   customTitle1: "自分だけの一台を。",

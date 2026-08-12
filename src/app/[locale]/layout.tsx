@@ -3,6 +3,8 @@ import { Noto_Sans, Noto_Sans_JP } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { CartBar } from "@/features/cart/components/cart-bar";
+import { buildCategoryTree } from "@/features/catalog/tree";
 import { SiteFooter } from "@/features/layout/components/site-footer";
 import { SiteHeader } from "@/features/layout/components/site-header";
 import { SocialBubbles } from "@/features/layout/components/social-bubbles";
@@ -10,6 +12,7 @@ import { Topbar } from "@/features/layout/components/topbar";
 import { LOCALES, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { I18nProvider } from "@/i18n/i18n-provider";
+import { listCategories } from "@/server/services/catalog.service";
 
 import "../globals.css";
 
@@ -80,7 +83,9 @@ export default async function LocaleLayout({
   // A hand-typed `/de` must 404 rather than render an empty dictionary.
   if (!isLocale(locale)) notFound();
 
-  const t = await getDictionary(locale);
+  // The header's category menu needs the catalogue tree on every page, so the
+  // layout reads it once here rather than each page threading it through.
+  const [t, categories] = await Promise.all([getDictionary(locale), listCategories()]);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -88,10 +93,14 @@ export default async function LocaleLayout({
         {/* The dictionary is serialised into the client tree exactly once. */}
         <I18nProvider value={{ locale, t }}>
           <Topbar t={t} locale={locale} />
-          <SiteHeader t={t} locale={locale} />
+          <SiteHeader t={t} locale={locale} categories={buildCategoryTree(categories)} />
           <main>{children}</main>
           <SiteFooter />
+          {/* The bottom bar is fixed, so the last of the footer would sit under
+              it forever without a matching run-off below `lg`. */}
+          <div className="h-[calc(4.25rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden />
           <SocialBubbles />
+          <CartBar />
         </I18nProvider>
       </body>
     </html>
