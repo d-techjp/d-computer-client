@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/features/layout/components/site-footer";
 import { SiteHeader } from "@/features/layout/components/site-header";
+import { SocialBubbles } from "@/features/layout/components/social-bubbles";
 import { Topbar } from "@/features/layout/components/topbar";
 import { LOCALES, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -90,6 +91,7 @@ export default async function LocaleLayout({
           <SiteHeader t={t} locale={locale} />
           <main>{children}</main>
           <SiteFooter />
+          <SocialBubbles />
         </I18nProvider>
       </body>
     </html>
