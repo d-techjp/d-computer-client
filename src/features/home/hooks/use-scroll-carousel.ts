@@ -21,6 +21,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
   const ref = useRef<T>(null);
   // A ref, not state: pausing must not re-render the card list underneath.
   const paused = useRef(false);
+  const momentumFrame = useRef<number | null>(null);
   const drag = useRef({
     axis: "pending" as "horizontal" | "pending" | "vertical",
     didDrag: false,
@@ -28,7 +29,49 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     startLeft: 0,
     startX: 0,
     startY: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
   });
+
+  const stopMomentum = useCallback(() => {
+    if (momentumFrame.current !== null) {
+      cancelAnimationFrame(momentumFrame.current);
+      momentumFrame.current = null;
+    }
+  }, []);
+
+  const startMomentum = useCallback((initialVelocity: number) => {
+    const track = ref.current;
+    if (!track || Math.abs(initialVelocity) < 0.08) return;
+
+    stopMomentum();
+    let velocity = initialVelocity;
+    let previousTime = performance.now();
+
+    const tick = (time: number) => {
+      const currentTrack = ref.current;
+      if (!currentTrack) return;
+
+      const elapsed = Math.min(time - previousTime, 48);
+      previousTime = time;
+      const maxLeft = currentTrack.scrollWidth - currentTrack.clientWidth;
+      const nextLeft = Math.max(0, Math.min(currentTrack.scrollLeft + velocity * elapsed, maxLeft));
+
+      currentTrack.scrollLeft = nextLeft;
+      // Decelerate at the same rate on displays with different refresh rates.
+      velocity *= Math.pow(0.92, elapsed / 16.67);
+
+      if (nextLeft <= 0 || nextLeft >= maxLeft || Math.abs(velocity) < 0.015) {
+        momentumFrame.current = null;
+        return;
+      }
+
+      momentumFrame.current = requestAnimationFrame(tick);
+    };
+
+    momentumFrame.current = requestAnimationFrame(tick);
+  }, [stopMomentum]);
 
   const pause = useCallback(() => {
     paused.current = true;
@@ -38,7 +81,10 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     paused.current = false;
   }, []);
 
+  useEffect(() => stopMomentum, [stopMomentum]);
+
   const step = useCallback((direction: 1 | -1) => {
+    stopMomentum();
     const track = ref.current;
     const card = track?.firstElementChild;
     if (!track || !(card instanceof HTMLElement)) return;
@@ -63,7 +109,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
           : Math.max(current - stride, 0);
 
     track.scrollTo({ left, behavior: "smooth" });
-  }, []);
+  }, [stopMomentum]);
 
   useEffect(() => {
     if (itemCount <= 1) return;
@@ -83,6 +129,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     const track = ref.current;
     if (!track) return;
 
+    stopMomentum();
     pause();
     drag.current = {
       axis: "pending",
@@ -91,9 +138,11 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
       startLeft: track.scrollLeft,
       startX: event.clientX,
       startY: event.clientY,
+      lastX: event.clientX,
+      lastTime: event.timeStamp,
+      velocity: 0,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }, [pause]);
+  }, [pause, stopMomentum]);
 
   const onPointerMove = useCallback((event: PointerEvent<T>) => {
     const track = ref.current;
@@ -109,6 +158,20 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     }
     if (activeDrag.axis === "vertical") return;
 
+    // Capturing at pointer-down also captures an ordinary click on a product
+    // link. Wait until the gesture is proven to be a horizontal drag instead.
+    if (!track.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    const elapsed = event.timeStamp - activeDrag.lastTime;
+    if (elapsed > 0) {
+      const instantaneousVelocity = -(event.clientX - activeDrag.lastX) / elapsed;
+      // Smooth out noisy pointer samples while retaining a responsive flick.
+      activeDrag.velocity = activeDrag.velocity * 0.7 + instantaneousVelocity * 0.3;
+      activeDrag.lastX = event.clientX;
+      activeDrag.lastTime = event.timeStamp;
+    }
     activeDrag.didDrag = true;
     track.scrollLeft = activeDrag.startLeft - distanceX;
   }, []);
@@ -121,11 +184,12 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
+      if (drag.current.didDrag) startMomentum(drag.current.velocity);
       // Mouse hover should keep autoplay paused while a card is being read;
       // a touch interaction has no hover state, so resume after its drag ends.
       if (event.pointerType !== "mouse") resume();
     },
-    [resume],
+    [resume, startMomentum],
   );
 
   const onPointerCancel = useCallback(
