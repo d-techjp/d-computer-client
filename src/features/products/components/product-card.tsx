@@ -50,7 +50,7 @@ export function ProductCard({
       // so one two-line product name left its neighbours visibly short.
       className="group flex h-full flex-col overflow-hidden border border-line-soft bg-surface transition-[border-color,box-shadow] duration-300 hover:border-line-strong hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
-      <div className="relative aspect-[4/3] overflow-hidden border-b border-line-soft bg-mist-soft md:aspect-square">
+      <div className="relative aspect-4/3 overflow-hidden border-b border-line-soft bg-mist-soft">
         <div className="absolute top-0 left-0 z-10 flex flex-col items-start gap-1.5">
           {product.isFeatured && !outOfStock ? (
             <span className="bg-ink-strong px-2 py-0.5 text-[9px] font-black tracking-[0.7px] text-white md:px-2.5 md:py-1 md:text-[10px]">

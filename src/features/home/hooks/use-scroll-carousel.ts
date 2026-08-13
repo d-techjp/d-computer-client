@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type MouseEvent, type PointerEvent } from "react";
 
 /**
- * A carousel driven by the browser's own horizontal scrolling plus CSS
- * scroll-snap, rather than by a JS-computed `translateX`.
+ * A carousel driven by the browser's own horizontal scrolling, rather than by
+ * a JS-computed `translateX`.
  *
  * The win is that "how many cards fit" stays a pure CSS question: the track
  * is a flex row of percentage-width cards, so the count changes with the
@@ -21,6 +21,22 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
   const ref = useRef<T>(null);
   // A ref, not state: pausing must not re-render the card list underneath.
   const paused = useRef(false);
+  const drag = useRef({
+    axis: "pending" as "horizontal" | "pending" | "vertical",
+    didDrag: false,
+    pointerId: -1,
+    startLeft: 0,
+    startX: 0,
+    startY: 0,
+  });
+
+  const pause = useCallback(() => {
+    paused.current = true;
+  }, []);
+
+  const resume = useCallback(() => {
+    paused.current = false;
+  }, []);
 
   const step = useCallback((direction: 1 | -1) => {
     const track = ref.current;
@@ -61,13 +77,86 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     return () => clearInterval(timer);
   }, [itemCount, step]);
 
-  const pause = useCallback(() => {
-    paused.current = true;
+  const onPointerDown = useCallback((event: PointerEvent<T>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    const track = ref.current;
+    if (!track) return;
+
+    pause();
+    drag.current = {
+      axis: "pending",
+      didDrag: false,
+      pointerId: event.pointerId,
+      startLeft: track.scrollLeft,
+      startX: event.clientX,
+      startY: event.clientY,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, [pause]);
+
+  const onPointerMove = useCallback((event: PointerEvent<T>) => {
+    const track = ref.current;
+    const activeDrag = drag.current;
+    if (!track || activeDrag.pointerId !== event.pointerId) return;
+
+    const distanceX = event.clientX - activeDrag.startX;
+    const distanceY = event.clientY - activeDrag.startY;
+
+    if (activeDrag.axis === "pending") {
+      if (Math.max(Math.abs(distanceX), Math.abs(distanceY)) <= 5) return;
+      activeDrag.axis = Math.abs(distanceX) > Math.abs(distanceY) ? "horizontal" : "vertical";
+    }
+    if (activeDrag.axis === "vertical") return;
+
+    activeDrag.didDrag = true;
+    track.scrollLeft = activeDrag.startLeft - distanceX;
   }, []);
 
-  const resume = useCallback(() => {
-    paused.current = false;
+  const onPointerUp = useCallback(
+    (event: PointerEvent<T>) => {
+      if (drag.current.pointerId !== event.pointerId) return;
+
+      drag.current.pointerId = -1;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      // Mouse hover should keep autoplay paused while a card is being read;
+      // a touch interaction has no hover state, so resume after its drag ends.
+      if (event.pointerType !== "mouse") resume();
+    },
+    [resume],
+  );
+
+  const onPointerCancel = useCallback(
+    (event: PointerEvent<T>) => {
+      if (drag.current.pointerId !== event.pointerId) return;
+
+      drag.current.pointerId = -1;
+      drag.current.didDrag = false;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      if (event.pointerType !== "mouse") resume();
+    },
+    [resume],
+  );
+
+  const onClickCapture = useCallback((event: MouseEvent<T>) => {
+    // Browsers dispatch a click after pointer-up. Avoid opening a card when
+    // the same gesture was a horizontal drag, but leave ordinary clicks alone.
+    if (!drag.current.didDrag) return;
+
+    drag.current.didDrag = false;
+    event.preventDefault();
+    event.stopPropagation();
   }, []);
 
-  return { ref, step, pause, resume };
+  return {
+    ref,
+    step,
+    pause,
+    resume,
+    dragHandlers: { onClickCapture, onPointerCancel, onPointerDown, onPointerMove, onPointerUp },
+  };
 }

@@ -2,23 +2,20 @@ import { notFound } from "next/navigation";
 
 import { BlogSection } from "@/features/home/components/blog-section";
 import { CustomPcSection } from "@/features/home/components/custom-pc-section";
-import { FeaturedProducts } from "@/features/home/components/featured-products";
 import { Hero } from "@/features/home/components/hero";
+import { ProductCarousel } from "@/features/home/components/product-carousel";
 import { TrustBar } from "@/features/home/components/trust-bar";
 import { buildCategoryTree } from "@/features/catalog/tree";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listArticles } from "@/server/services/article.service";
 import { listCategories } from "@/server/services/catalog.service";
-import { listProducts } from "@/server/services/product.service";
+import { listHomeCarousels } from "@/server/services/carousel.service";
 
 // Stock, prices and featured flags come from the live backend — this page
 // must never be frozen into a static HTML file at build time.
 export const dynamic = "force-dynamic";
 
-// Products feed a sliding carousel (3 per panel), so it takes a deeper list
-// than the plain 4-across article teaser grid below it.
-const FEATURED_PRODUCTS_LIMIT = 10;
 const FEATURED_ARTICLES_LIMIT = 4;
 
 /**
@@ -36,24 +33,20 @@ export default async function HomePage({
   if (!isLocale(locale)) notFound();
 
   // Independent reads run concurrently instead of serialising into a waterfall.
-  const [t, featured, articleListing, categories] = await Promise.all([
+  const [t, articleListing, categories, carousels] = await Promise.all([
     getDictionary(locale),
-    // The home page shows a shortlist; the full catalogue lives at /products.
-    listProducts({ limit: FEATURED_PRODUCTS_LIMIT, isFeatured: true }),
     listArticles({ limit: FEATURED_ARTICLES_LIMIT }),
     listCategories(),
+    listHomeCarousels(),
   ]);
-
-  // Falls back to the plain catalogue when nothing is flagged `isFeatured`
-  // yet, so the section is never empty on a freshly seeded catalogue.
-  const products =
-    featured.length > 0 ? featured : await listProducts({ limit: FEATURED_PRODUCTS_LIMIT });
 
   return (
     <>
       <Hero categories={buildCategoryTree(categories)} />
       <TrustBar t={t} />
-      <FeaturedProducts products={products} locale={locale} t={t} />
+      {carousels.map((carousel) => (
+        <ProductCarousel key={carousel.id} carousel={carousel} locale={locale} />
+      ))}
       <CustomPcSection t={t} />
       <BlogSection articles={articleListing.articles} locale={locale} t={t} />
     </>
