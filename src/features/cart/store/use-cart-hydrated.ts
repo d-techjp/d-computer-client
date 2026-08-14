@@ -25,9 +25,17 @@ const getSnapshot = () => useCartStore.persist.hasHydrated();
 const getServerSnapshot = () => false;
 
 export function useCartHydrated(): boolean {
+  const hydrated = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
   useEffect(() => {
     void useCartStore.persist.rehydrate();
   }, []);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useEffect(() => {
+    if (hydrated && useCartStore.getState().cartId) {
+      void useCartStore.getState().refresh();
+    }
+  }, [hydrated]);
+
+  return hydrated;
 }

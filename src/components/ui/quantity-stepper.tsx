@@ -7,6 +7,8 @@ type QuantityStepperProps = {
   onIncrement: () => void;
   onDecrement: () => void;
   size?: "sm" | "md";
+  max?: number;
+  disabled?: boolean;
   labels: { increase: string; decrease: string };
   className?: string;
 };
@@ -21,6 +23,8 @@ export function QuantityStepper({
   onIncrement,
   onDecrement,
   size = "md",
+  max,
+  disabled = false,
   labels,
   className,
 }: QuantityStepperProps) {
@@ -41,7 +45,7 @@ export function QuantityStepper({
         type="button"
         aria-label={labels.decrease}
         onClick={onDecrement}
-        disabled={value <= 1}
+        disabled={disabled || value <= 1}
         className={cn(
           button,
           "cursor-pointer leading-none transition-colors hover:text-accent disabled:cursor-not-allowed disabled:opacity-40",
@@ -61,7 +65,11 @@ export function QuantityStepper({
         type="button"
         aria-label={labels.increase}
         onClick={onIncrement}
-        className={cn(button, "cursor-pointer leading-none transition-colors hover:text-accent")}
+        disabled={disabled || (max !== undefined && value >= max)}
+        className={cn(
+          button,
+          "cursor-pointer leading-none transition-colors hover:text-accent disabled:cursor-not-allowed disabled:opacity-40",
+        )}
       >
         +
       </button>

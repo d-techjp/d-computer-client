@@ -1,171 +1,284 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
 
-import {
-  defaultVariant,
-  productImage,
-  variantImages,
-  type Product,
-  type ProductVariant,
-} from "@/features/products/types";
+import { toApiError } from "@/lib/api/errors";
+import { defaultVariant, type Product, type ProductVariant } from "@/features/products/types";
 
-/**
- * A cart line snapshots the price *at the moment of adding* — standard
- * e-commerce practice, and it also means a rehydrated cart renders without
- * waiting on a catalogue fetch.
- */
-export type CartLine = {
-  id: string;
-  slug: string;
-  variantId: string;
-  sku: string;
-  name: string;
-  variantName: string;
-  image: string;
-  unitPrice: number;
-  quantity: number;
-};
+import {
+  addCartItem,
+  clearCart as clearRemoteCart,
+  createCart,
+  getCart,
+  removeCartItem,
+  updateCartItem,
+} from "../api/cart.repository";
+import type { Cart, CartItem, CartMutationResult } from "../api/cart.schema";
+
+type CartRequestStatus = "idle" | "loading" | "mutating";
 
 type CartState = {
-  lines: CartLine[];
+  /** The only cart value persisted in the browser, per cart.contract.yaml. */
+  cartId: string | null;
+  /** Live backend projection. Never persisted; prices and stock must stay current. */
+  cart: Cart | null;
+  requestStatus: CartRequestStatus;
+  error: string | null;
+  lastMutation: CartMutationResult["result"] | null;
 };
 
 type CartActions = {
-  add: (product: Product, quantity?: number) => void;
-  addVariant: (product: Product, variant: ProductVariant, quantity?: number) => void;
-  remove: (id: string) => void;
-  setQuantity: (id: string, quantity: number) => void;
-  increment: (id: string) => void;
-  decrement: (id: string) => void;
-  clear: () => void;
+  ensureCart: () => Promise<string | null>;
+  refresh: () => Promise<Cart | null>;
+  add: (product: Product, quantity?: number) => Promise<CartMutationResult | null>;
+  addVariant: (
+    product: Product,
+    variant: ProductVariant,
+    quantity?: number,
+  ) => Promise<CartMutationResult | null>;
+  setQuantity: (itemId: string, quantity: number) => Promise<CartMutationResult | null>;
+  increment: (itemId: string) => Promise<CartMutationResult | null>;
+  decrement: (itemId: string) => Promise<CartMutationResult | null>;
+  remove: (itemId: string) => Promise<Cart | null>;
+  clear: () => Promise<Cart | null>;
+  discard: () => void;
+  dismissMutation: () => void;
+  clearError: () => void;
 };
 
 export type CartStore = CartState & CartActions;
 
+const INITIAL_STATE: CartState = {
+  cartId: null,
+  cart: null,
+  requestStatus: "idle",
+  error: null,
+  lastMutation: null,
+};
+
+const EMPTY_ITEMS: CartItem[] = [];
+let createPromise: Promise<Cart> | null = null;
+let refreshPromise: Promise<Cart | null> | null = null;
+
 export const useCartStore = create<CartStore>()(
   persist(
-    (set) => ({
-      lines: [],
+    (set, get) => ({
+      ...INITIAL_STATE,
 
-      add: (product, quantity = 1) =>
-        set((state) => {
-          const variant = defaultVariant(product);
-          if (!variant) return state;
-          return addCartLine(state, product, variant, quantity);
-        }),
+      ensureCart: async () => {
+        const currentId = get().cartId;
+        if (currentId) return currentId;
 
-      addVariant: (product, variant, quantity = 1) =>
-        set((state) => {
-          return addCartLine(state, product, variant, quantity);
-        }),
+        set({ requestStatus: "mutating", error: null });
+        createPromise ??= createCart();
 
-      remove: (id) =>
-        set((state) => ({ lines: state.lines.filter((line) => line.id !== id) })),
+        try {
+          const cart = await createPromise;
+          set({ cartId: cart.id, cart, requestStatus: "idle" });
+          return cart.id;
+        } catch (cause) {
+          set({ requestStatus: "idle", error: toApiError(cause).message });
+          return null;
+        } finally {
+          createPromise = null;
+        }
+      },
 
-      setQuantity: (id, quantity) =>
-        set((state) => ({
-          lines: state.lines.map((line) =>
-            line.id === id ? { ...line, quantity: Math.max(1, quantity) } : line,
-          ),
-        })),
+      refresh: async () => {
+        const cartId = get().cartId;
+        if (!cartId) {
+          set({ cart: null, requestStatus: "idle" });
+          return null;
+        }
+        if (refreshPromise) return refreshPromise;
 
-      increment: (id) =>
-        set((state) => ({
-          lines: state.lines.map((line) =>
-            line.id === id ? { ...line, quantity: line.quantity + 1 } : line,
-          ),
-        })),
+        set({ requestStatus: "loading", error: null });
+        refreshPromise = (async () => {
+          try {
+            const cart = await getCart(cartId);
+            if (get().cartId !== cartId) return null;
+            set({ cart, requestStatus: "idle" });
+            return cart;
+          } catch (cause) {
+            const error = toApiError(cause);
+            if (error.status === 403 || error.status === 404) {
+              set({ ...INITIAL_STATE });
+            } else {
+              set({ requestStatus: "idle", error: error.message });
+            }
+            return null;
+          } finally {
+            refreshPromise = null;
+          }
+        })();
 
-      decrement: (id) =>
-        set((state) => ({
-          lines: state.lines.map((line) =>
-            line.id === id
-              ? { ...line, quantity: Math.max(1, line.quantity - 1) }
-              : line,
-          ),
-        })),
+        return refreshPromise;
+      },
 
-      clear: () => set({ lines: [] }),
+      add: async (product, quantity = 1) => {
+        const variant = defaultVariant(product);
+        if (!variant) return null;
+        return get().addVariant(product, variant, quantity);
+      },
+
+      addVariant: async (_product, variant, quantity = 1) => {
+        const cartId = await get().ensureCart();
+        if (!cartId) return null;
+
+        set({ requestStatus: "mutating", error: null, lastMutation: null });
+        try {
+          const mutation = await addCartItem(cartId, variant.id, Math.min(99, quantity));
+          set({ cart: mutation.cart, requestStatus: "idle", lastMutation: mutation.result });
+          return mutation;
+        } catch (cause) {
+          await recoverMutationFailure(cause, cartId, set);
+          return null;
+        }
+      },
+
+      setQuantity: async (itemId, quantity) => {
+        const cartId = get().cartId;
+        if (!cartId) return null;
+
+        set({ requestStatus: "mutating", error: null, lastMutation: null });
+        try {
+          const mutation = await updateCartItem(
+            cartId,
+            itemId,
+            Math.max(1, Math.min(99, quantity)),
+          );
+          set({ cart: mutation.cart, requestStatus: "idle", lastMutation: mutation.result });
+          return mutation;
+        } catch (cause) {
+          await recoverMutationFailure(cause, cartId, set);
+          return null;
+        }
+      },
+
+      increment: async (itemId) => {
+        const item = get().cart?.items.find((candidate) => candidate.id === itemId);
+        if (!item || item.quantity >= 99) return null;
+        return get().setQuantity(itemId, item.quantity + 1);
+      },
+
+      decrement: async (itemId) => {
+        const item = get().cart?.items.find((candidate) => candidate.id === itemId);
+        if (!item || item.quantity <= 1) return null;
+        return get().setQuantity(itemId, item.quantity - 1);
+      },
+
+      remove: async (itemId) => {
+        const cartId = get().cartId;
+        if (!cartId) return null;
+
+        set({ requestStatus: "mutating", error: null, lastMutation: null });
+        try {
+          const cart = await removeCartItem(cartId, itemId);
+          set({ cart, requestStatus: "idle" });
+          return cart;
+        } catch (cause) {
+          await recoverMutationFailure(cause, cartId, set);
+          return null;
+        }
+      },
+
+      clear: async () => {
+        const cartId = get().cartId;
+        if (!cartId) return null;
+
+        set({ requestStatus: "mutating", error: null, lastMutation: null });
+        try {
+          const cart = await clearRemoteCart(cartId);
+          set({ cart, requestStatus: "idle" });
+          return cart;
+        } catch (cause) {
+          await recoverMutationFailure(cause, cartId, set);
+          return null;
+        }
+      },
+
+      discard: () => set({ ...INITIAL_STATE }),
+      dismissMutation: () => set({ lastMutation: null }),
+      clearError: () => set({ error: null }),
     }),
     {
       name: "d-computer-client.cart",
       storage: createJSONStorage(() => localStorage),
-      version: 3,
-      // Actions are recreated on every load; only data belongs in storage.
-      partialize: (state) => ({ lines: state.lines }),
-      // The server has no localStorage, so SSR always renders an empty cart.
-      // Hydrating manually (see `useCartHydrated`) lets the first client paint
-      // match the server markup, then swap in the stored cart.
+      version: 4,
+      partialize: (state) => ({ cartId: state.cartId }),
+      migrate: (persistedState, version) => {
+        if (version === 4 && persistedState && typeof persistedState === "object") {
+          const cartId = (persistedState as { cartId?: unknown }).cartId;
+          return { cartId: typeof cartId === "string" ? cartId : null };
+        }
+        // Versions <=3 persisted price snapshots and lines, which the new DB
+        // cart contract explicitly forbids. Start without a cart id.
+        return { cartId: null };
+      },
       skipHydration: true,
     },
   ),
 );
 
-function addCartLine(
-  state: CartState,
-  product: Product,
-  variant: ProductVariant,
-  quantity: number,
-): CartState {
-  const id = `${product.slug}:${variant.id}`;
-  const existing = state.lines.find((line) => line.id === id);
+async function recoverMutationFailure(
+  cause: unknown,
+  cartId: string,
+  set: (partial: Partial<CartStore>) => void,
+): Promise<void> {
+  const error = toApiError(cause);
 
-  if (existing) {
-    return {
-      lines: state.lines.map((line) =>
-        line.id === id ? { ...line, quantity: line.quantity + quantity } : line,
-      ),
-    };
+  if (error.status === 403) {
+    set({ ...INITIAL_STATE, error: error.message });
+    return;
   }
 
-  return {
-    lines: [
-      ...state.lines,
-      {
-        id,
-        slug: product.slug,
-        variantId: variant.id,
-        sku: variant.sku,
-        name: product.name,
-        variantName: variant.name,
-        image: variantImages(product, variant)[0] ?? productImage(product),
-        unitPrice: variant.price,
-        quantity,
-      },
-    ],
-  };
+  if (error.status === 404) {
+    try {
+      // A mutation 404 may mean either the cart/item or the variant is gone.
+      // Refresh distinguishes those cases without throwing away a valid cart.
+      const cart = await getCart(cartId);
+      set({ cart, requestStatus: "idle", error: error.message });
+      return;
+    } catch (refreshCause) {
+      const refreshError = toApiError(refreshCause);
+      if (refreshError.status === 403 || refreshError.status === 404) {
+        set({ ...INITIAL_STATE, error: error.message });
+        return;
+      }
+    }
+  }
+
+  set({ requestStatus: "idle", error: error.message });
 }
 
-/* ---------------------------------------------------------------------------
- * Selector hooks.
- * Subscribing to the whole store re-renders every consumer on any change.
- * Each hook below subscribes to the narrowest slice it needs, so the cart badge
- * does not re-render when a quantity stepper moves.
- * ------------------------------------------------------------------------ */
+export const useCart = () => useCartStore((state) => state.cart);
+export const useCartId = () => useCartStore((state) => state.cartId);
+export const useCartLines = () => useCartStore((state) => state.cart?.items ?? EMPTY_ITEMS);
+export const useCartCount = () => useCartStore((state) => state.cart?.itemCount ?? 0);
+export const useCartSubtotal = () => useCartStore((state) => state.cart?.subtotal ?? 0);
+export const useCartHasBlockingIssues = () =>
+  useCartStore((state) => state.cart?.hasBlockingIssues ?? false);
+export const useCartBusy = () => useCartStore((state) => state.requestStatus !== "idle");
+export const useCartLoading = () => useCartStore((state) => state.requestStatus === "loading");
+export const useCartError = () => useCartStore((state) => state.error);
+export const useCartLastMutation = () => useCartStore((state) => state.lastMutation);
 
-export const useCartLines = () => useCartStore(useShallow((state) => state.lines));
-
-export const useCartCount = () =>
-  useCartStore((state) => state.lines.reduce((total, line) => total + line.quantity, 0));
-
-export const useCartSubtotal = () =>
-  useCartStore((state) =>
-    state.lines.reduce((total, line) => total + line.unitPrice * line.quantity, 0),
-  );
-
-/** Actions are stable across renders, so this never causes a re-render. */
 export const useCartActions = () =>
   useCartStore(
     useShallow((state) => ({
+      ensureCart: state.ensureCart,
+      refresh: state.refresh,
       add: state.add,
       addVariant: state.addVariant,
-      remove: state.remove,
       setQuantity: state.setQuantity,
       increment: state.increment,
       decrement: state.decrement,
+      remove: state.remove,
       clear: state.clear,
+      discard: state.discard,
+      dismissMutation: state.dismissMutation,
+      clearError: state.clearError,
     })),
   );

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/ui/icons";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { BADGE_ICONS } from "@/config/glyphs";
-import { useCartActions } from "@/features/cart/store/cart.store";
+import { useCartActions, useCartBusy } from "@/features/cart/store/cart.store";
 import { useUiStore } from "@/features/layout/store/ui.store";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
@@ -79,6 +79,7 @@ export function ProductDetail({
   const imageScrollerRef = useRef<HTMLDivElement>(null);
   const imageScrollTimeout = useRef<number | null>(null);
   const { addVariant } = useCartActions();
+  const cartBusy = useCartBusy();
   const openPanel = useUiStore((state) => state.open);
 
   const discount = selectedVariant ? variantDiscountPercent(selectedVariant) : 0;
@@ -89,8 +90,8 @@ export function ProductDetail({
 
   const handleAdd = () => {
     if (!selectedVariant) return;
-    addVariant(product, selectedVariant, quantity);
     openPanel("cart");
+    void addVariant(product, selectedVariant, quantity);
   };
   const selectImage = (image: string) => {
     setSelectedImageOverride({ variantId: selectedVariant?.id ?? "", image });
@@ -258,11 +259,13 @@ export function ProductDetail({
               value={quantity}
               onIncrement={() => setQuantity((value) => value + 1)}
               onDecrement={() => setQuantity((value) => Math.max(1, value - 1))}
+              max={99}
+              disabled={cartBusy}
               labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}
             />
             <Button
               onClick={handleAdd}
-              disabled={purchaseDisabled}
+              disabled={purchaseDisabled || cartBusy}
               className="flex-1"
             >
               {notForSale ? t.badgeNotForSale : outOfStock ? t.badgeOutOfStock : t.detailAddToCart}

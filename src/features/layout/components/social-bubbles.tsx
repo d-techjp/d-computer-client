@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 
 type SocialBubble = {
@@ -76,7 +77,12 @@ function storeVisible(visible: boolean): void {
  * the choice is remembered across visits.
  */
 export function SocialBubbles() {
+  const pathname = usePathname();
   const visible = useSyncExternalStore(subscribe, isVisible, isVisibleOnServer);
+
+  // Cart and checkout place prices and order controls at the viewport edge on
+  // narrow screens, so fixed social actions would overlap transaction content.
+  if (/\/(?:cart|checkout)(?:\/|$)/.test(pathname)) return null;
 
   return (
     <nav

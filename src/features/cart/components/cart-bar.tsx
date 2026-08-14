@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { CartIcon } from "@/components/ui/icons";
 import { useUiStore } from "@/features/layout/store/ui.store";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -20,11 +22,17 @@ import { useCartHydrated } from "../store/use-cart-hydrated";
  */
 export function CartBar() {
   const { t } = useI18n();
+  const pathname = usePathname();
   const hydrated = useCartHydrated();
 
   const count = useCartCount();
   const subtotal = useCartSubtotal();
   const open = useUiStore((state) => state.open);
+
+  // Cart and checkout already expose the order and its primary actions.
+  // Repeating the mobile trigger there would cover the summary and reopen the
+  // cart sheet while the user is working through the order.
+  if (/\/(?:cart|checkout)(?:\/|$)/.test(pathname)) return null;
 
   return (
     <button

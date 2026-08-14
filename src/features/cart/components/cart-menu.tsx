@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { CartIcon, CloseIcon } from "@/components/ui/icons";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useIsPanelOpen, useUiStore } from "@/features/layout/store/ui.store";
@@ -13,8 +14,12 @@ import { formatPrice } from "@/lib/format/currency";
 
 import {
   useCartActions,
+  useCartBusy,
   useCartCount,
+  useCartError,
+  useCartLastMutation,
   useCartLines,
+  useCartLoading,
   useCartSubtotal,
 } from "../store/cart.store";
 import { useCartHydrated } from "../store/use-cart-hydrated";
@@ -30,18 +35,30 @@ import { useCartHydrated } from "../store/use-cart-hydrated";
  * dropdown, which already worked fine with a pointer.
  */
 export function CartMenu() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const hydrated = useCartHydrated();
 
   const lines = useCartLines();
   const count = useCartCount();
   const subtotal = useCartSubtotal();
+  const busy = useCartBusy();
+  const loading = useCartLoading();
+  const error = useCartError();
+  const lastMutation = useCartLastMutation();
   const { increment, decrement, remove } = useCartActions();
 
   const open = useIsPanelOpen("cart");
   const toggle = useUiStore((state) => state.toggle);
   const close = useUiStore((state) => state.close);
   const ref = useDismissable<HTMLDivElement>(open, close);
+  const mutationMessage =
+    lastMutation && lastMutation.status !== "added"
+      ? locale === "vi"
+        ? lastMutation.message
+        : lastMutation.issue
+          ? t.cartIssueLabels[lastMutation.issue]
+          : t.cartMutationAdjusted
+      : null;
 
   // The sheet covers the viewport on mobile — letting the page scroll behind
   // it is the classic bug where dismissing it leaves you somewhere else. A
@@ -122,7 +139,20 @@ export function CartMenu() {
               </button>
             </header>
 
-            {lines.length === 0 ? (
+            {error || mutationMessage ? (
+              <p
+                role={error ? "alert" : "status"}
+                className="border-b border-line-faint bg-[#FFF8E8] px-5 py-2.5 text-xs leading-5 text-ink-body"
+              >
+                {error ?? mutationMessage}
+              </p>
+            ) : null}
+
+            {loading && lines.length === 0 ? (
+              <p className="px-5 py-10 text-center text-[13px] text-ink-subtle">
+                {t.cartLoading}
+              </p>
+            ) : lines.length === 0 ? (
               <p className="px-5 py-10 text-center text-[13px] text-ink-subtle">{t.cartEmpty}</p>
             ) : (
               <>
@@ -133,26 +163,48 @@ export function CartMenu() {
                       className="flex items-center gap-3 border-b border-mist px-5 py-3.5"
                     >
                       <span className="relative size-[54px] flex-none overflow-hidden rounded-[10px] bg-mist">
-                        <Image src={line.image} alt="" fill sizes="54px" className="object-contain" />
+                        <Image
+                          src={line.image ?? "/logo-d-tech.png"}
+                          alt=""
+                          fill
+                          sizes="54px"
+                          className="object-contain"
+                        />
                       </span>
 
                       <span className="min-w-0 flex-1">
                         <span className="mb-1 block truncate text-[13px] font-semibold">
-                          {line.name}
+                          {line.productName}
                         </span>
                         <span className="mb-1 block truncate text-[11.5px] text-ink-faint">
                           {line.variantName} · {line.sku}
                         </span>
                         <span className="block text-[13px] font-bold text-accent">
-                          {formatPrice(line.unitPrice * line.quantity)}
+                          {formatPrice(line.lineTotal)}
                         </span>
+                        {line.priceChanged && line.addedUnitPrice !== undefined ? (
+                          <span className="mt-1 block text-[10.5px] leading-4 text-[#9B6808]">
+                            {t.cartPriceChanged
+                              .replace("{old}", formatPrice(line.addedUnitPrice))
+                              .replace("{new}", formatPrice(line.unitPrice))}
+                          </span>
+                        ) : null}
+                        {!line.isAvailable ? (
+                          <span className="mt-1 block text-[10.5px] leading-4 text-accent">
+                            {line.issues
+                              .filter((issue) => issue !== "price_changed")
+                              .map((issue) => t.cartIssueLabels[issue])
+                              .join(" · ")}
+                          </span>
+                        ) : null}
                       </span>
 
                       <span className="flex flex-col items-end gap-1.5">
                         <button
                           type="button"
-                          onClick={() => remove(line.id)}
-                          aria-label={`${t.cartRemove} ${line.name}`}
+                          onClick={() => void remove(line.id)}
+                          aria-label={`${t.cartRemove} ${line.productName}`}
+                          disabled={busy}
                           className="cursor-pointer text-[11.5px] text-ink-faint transition-colors hover:text-accent"
                         >
                           ✕
@@ -160,8 +212,10 @@ export function CartMenu() {
                         <QuantityStepper
                           size="sm"
                           value={line.quantity}
-                          onIncrement={() => increment(line.id)}
-                          onDecrement={() => decrement(line.id)}
+                          onIncrement={() => void increment(line.id)}
+                          onDecrement={() => void decrement(line.id)}
+                          max={99}
+                          disabled={busy || !line.isAvailable}
                           labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}
                         />
                       </span>
@@ -176,7 +230,13 @@ export function CartMenu() {
                       {formatPrice(subtotal)}
                     </span>
                   </div>
-                  <Button size="block">{t.cartCheckout}</Button>
+                  <Link
+                    href={`/${locale}/cart`}
+                    onClick={close}
+                    className={buttonVariants({ size: "block" })}
+                  >
+                    {t.cartCheckout}
+                  </Link>
                 </footer>
               </>
             )}
