@@ -54,39 +54,41 @@ export default async function ProductPage({ params }: PageProps) {
   const specs = specRows(product);
 
   return (
-    <div className="shell py-8 md:py-10">
-      <Link
-        href={`/${locale}/products`}
-        className="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-muted transition-colors hover:text-accent"
-      >
-        ← {t.detailBack}
-      </Link>
+    <div className="bg-white">
+      <div className="shell py-8 md:py-10">
+        <Link
+          href={`/${locale}/products`}
+          className="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-muted transition-colors hover:text-accent"
+        >
+          ← {t.detailBack}
+        </Link>
 
-      <ProductDetail
-        product={product}
-        specs={specs}
-        specLabels={{
-          title: t.detailSpecs,
-          showAll: t.specShowAll,
-          showLess: t.specShowLess,
-        }}
-        badges={t.sideBadges.map((badge) => badge.title)}
-      />
+        <ProductDetail
+          product={product}
+          specs={specs}
+          specLabels={{
+            title: t.detailSpecs,
+            showAll: t.specShowAll,
+            showLess: t.specShowLess,
+          }}
+          badges={t.sideBadges.map((badge) => badge.title)}
+        />
 
-      {description ? (
-        <section className="mt-12 border-t border-line-soft pt-8 md:mt-16 md:pt-10">
-          <h2 className="mb-5 border-l-[5px] border-accent pl-3.5 text-[20px] font-black md:text-[24px]">
-            {t.detailDescription}
-          </h2>
-          {/* Capped for readability: body copy running the full 1400px shell
-              is a wall of text no one finishes. Same rich-text styling the
-              article body uses — both come out of the same admin editor. */}
-          <div
-            className="rich-text max-w-[860px] text-[14.5px] leading-[1.9] text-ink-body"
-            dangerouslySetInnerHTML={{ __html: description }}
-          />
-        </section>
-      ) : null}
+        {description ? (
+          <section className="mt-12 border-t border-line-soft pt-8 md:mt-16 md:pt-10">
+            <h2 className="mb-5 border-l-[5px] border-accent pl-3.5 text-[20px] font-black md:text-[24px]">
+              {t.detailDescription}
+            </h2>
+            {/* Capped for readability: body copy running the full 1400px shell
+                is a wall of text no one finishes. Same rich-text styling the
+                article body uses — both come out of the same admin editor. */}
+            <div
+              className="rich-text max-w-[860px] text-[14.5px] leading-[1.9] text-ink-body"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+          </section>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/ui/icons";
@@ -77,6 +77,7 @@ export function ProductDetail({
     overrideImage && displayedImages.includes(overrideImage) ? overrideImage : images[0];
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const imageDrag = useRef({ pointerId: -1, startX: 0, didSwipe: false });
   const { addVariant } = useCartActions();
   const openPanel = useUiStore((state) => state.open);
 
@@ -100,12 +101,39 @@ export function ProductDetail({
     const nextIndex = (currentIndex + offset + displayedImages.length) % displayedImages.length;
     selectImage(displayedImages[nextIndex], offset);
   };
+  const handleImagePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    imageDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      didSwipe: false,
+    };
+    // The pointer often leaves the frame before a desktop drag ends. Capture
+    // it so pointer-up still reaches this handler and cannot become a zoom click.
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const handleImagePointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (imageDrag.current.pointerId !== event.pointerId) return;
+
+    const distance = event.clientX - imageDrag.current.startX;
+    imageDrag.current.pointerId = -1;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    if (Math.abs(distance) < 36 || displayedImages.length <= 1) return;
+
+    imageDrag.current.didSwipe = true;
+    selectImageByOffset(distance > 0 ? -1 : 1);
+  };
 
   return (
     <>
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:gap-14">
         <section aria-label={t.detailSelectedImage}>
-          <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-mist cursor-pointer">
+          <div
+            className="relative aspect-4/3 touch-pan-y overflow-hidden rounded-2xl bg-white cursor-pointer"
+          >
             {notForSale ? (
               <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
                 {t.badgeNotForSale}
@@ -122,7 +150,25 @@ export function ProductDetail({
 
             <button
               type="button"
-              onClick={() => setPreviewImage(selectedImage)}
+              onPointerDown={handleImagePointerDown}
+              onPointerUp={handleImagePointerUp}
+              onPointerCancel={(event) => {
+                if (
+                  imageDrag.current.pointerId !== -1 &&
+                  event.currentTarget.hasPointerCapture(imageDrag.current.pointerId)
+                ) {
+                  event.currentTarget.releasePointerCapture(imageDrag.current.pointerId);
+                }
+                imageDrag.current.pointerId = -1;
+                imageDrag.current.didSwipe = false;
+              }}
+              onClick={() => {
+                if (imageDrag.current.didSwipe) {
+                  imageDrag.current.didSwipe = false;
+                  return;
+                }
+                setPreviewImage(selectedImage);
+              }}
               aria-label={t.detailOpenImage}
               className="absolute inset-0 cursor-zoom-in"
             >

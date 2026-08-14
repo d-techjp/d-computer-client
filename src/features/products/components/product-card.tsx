@@ -15,6 +15,17 @@ import {
   type Product,
 } from "../types";
 
+const SHORT_DESCRIPTION_MAX_LENGTH = 66;
+
+function truncateShortDescription(value: string): string {
+  const text = value.replace(/\s+/g, " ").trim();
+  const characters = Array.from(text);
+
+  return characters.length > SHORT_DESCRIPTION_MAX_LENGTH
+    ? `${characters.slice(0, SHORT_DESCRIPTION_MAX_LENGTH).join("")}...`
+    : text;
+}
+
 /**
  * Presentational and server-rendered. A `Link` gets crawlability, middle-click
  * and keyboard focus for free — and costs zero client JavaScript.
@@ -48,9 +59,9 @@ export function ProductCard({
       // `h-full` is what keeps a row of cards the same height. Grid and flex
       // both stretch the *cell*, but the card only grew to its own content,
       // so one two-line product name left its neighbours visibly short.
-      className="group flex h-full flex-col overflow-hidden border border-line-soft bg-surface transition-[border-color,box-shadow] duration-300 hover:border-line-strong hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="group flex h-full flex-col overflow-hidden border border-line-soft bg-white transition-[border-color,box-shadow] duration-300 hover:border-line-strong hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
-      <div className="relative aspect-4/3 overflow-hidden border-b border-line-soft bg-mist-soft">
+      <div className="relative aspect-4/3 overflow-hidden border-b border-line-soft bg-white">
         <div className="absolute top-0 left-0 z-10 flex flex-col items-start gap-1.5">
           {product.isFeatured && !outOfStock ? (
             <span className="bg-ink-strong px-2 py-0.5 text-[9px] font-black tracking-[0.7px] text-white md:px-2.5 md:py-1 md:text-[10px]">
@@ -96,7 +107,7 @@ export function ProductCard({
         </h3>
         {product.shortDescription ? (
           <p className="mb-2.5 hidden line-clamp-2 text-[11.5px] leading-normal text-ink-subtle md:block">
-            {product.shortDescription}
+            {truncateShortDescription(product.shortDescription)}
           </p>
         ) : null}
 
