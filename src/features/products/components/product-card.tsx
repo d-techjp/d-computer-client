@@ -81,7 +81,7 @@ export function ProductCard({
           fill
           priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1400px) 25vw, 330px"
-          className="object-contain p-2.5 transition-transform duration-500 group-hover:scale-[1.06] md:p-4"
+          className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
         />
       </div>
 
