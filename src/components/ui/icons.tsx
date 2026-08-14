@@ -170,6 +170,20 @@ export function ChevronRightIcon(props: IconProps) {
   );
 }
 
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <svg width={18} height={18} {...base(props)}>
+      <path
+        d="M5 9l7 7 7-7"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /* ---------------------------------------------------------------------------
  * Feature glyphs.
  * The original used bare characters (☎, ⚙, ☺) for these. Several of them have

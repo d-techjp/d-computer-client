@@ -33,7 +33,7 @@ const ja = {
   heroAccent: "変える",
   heroTitle3: "。",
   heroDesc: "高品質パーツと確かな技術で、最高のパフォーマンスをお届けします。",
-  heroCta: "製品を見る",
+  heroScrollDown: "製品一覧へスクロール",
   categoryRailTitle: "商品カテゴリ",
   categoryRailAll: "すべての製品",
   // `{count}` is substituted at render time with the category's product count.

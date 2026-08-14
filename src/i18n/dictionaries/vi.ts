@@ -37,7 +37,7 @@ const vi: typeof ja = {
   heroTitle3: " thế giới của bạn.",
   heroDesc:
     "Linh kiện chất lượng cao cùng kỹ thuật lắp ráp chuẩn xác, mang đến hiệu năng tối ưu cho mọi trải nghiệm.",
-  heroCta: "Xem sản phẩm",
+  heroScrollDown: "Cuộn xuống xem sản phẩm",
   categoryRailTitle: "Danh mục sản phẩm",
   categoryRailAll: "Tất cả sản phẩm",
   categoryCardCount: "{count} sản phẩm",

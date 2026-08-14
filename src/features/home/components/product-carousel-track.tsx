@@ -23,7 +23,8 @@ export function ProductCarouselTrack({
   const { ref, step, pause, resume, dragHandlers } = useScrollCarousel<HTMLUListElement>(products.length);
 
   return (
-    <RevealSection className="shell py-7 md:py-9">
+    // `data-home-carousel`: the hero's scroll arrow aims at the first of these.
+    <RevealSection data-home-carousel="" className="shell py-7 md:py-9">
       <SectionHeading title={title} action={t.viewAll} actionHref={`/${locale}/products`} />
 
       <div

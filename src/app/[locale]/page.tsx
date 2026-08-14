@@ -5,11 +5,9 @@ import { CustomPcSection } from "@/features/home/components/custom-pc-section";
 import { Hero } from "@/features/home/components/hero";
 import { ProductCarousel } from "@/features/home/components/product-carousel";
 import { TrustBar } from "@/features/home/components/trust-bar";
-import { buildCategoryTree } from "@/features/catalog/tree";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listArticles } from "@/server/services/article.service";
-import { listCategories } from "@/server/services/catalog.service";
 import { listHomeCarousels } from "@/server/services/carousel.service";
 
 // Stock, prices and featured flags come from the live backend — this page
@@ -33,16 +31,15 @@ export default async function HomePage({
   if (!isLocale(locale)) notFound();
 
   // Independent reads run concurrently instead of serialising into a waterfall.
-  const [t, articleListing, categories, carousels] = await Promise.all([
+  const [t, articleListing, carousels] = await Promise.all([
     getDictionary(locale),
     listArticles({ limit: FEATURED_ARTICLES_LIMIT }),
-    listCategories(),
     listHomeCarousels(),
   ]);
 
   return (
     <>
-      <Hero categories={buildCategoryTree(categories)} />
+      <Hero />
       <TrustBar t={t} />
       {carousels.map((carousel) => (
         <ProductCarousel key={carousel.id} carousel={carousel} locale={locale} />

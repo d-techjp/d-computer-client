@@ -7,8 +7,23 @@ import { footerHref } from "@/config/nav";
 import { useReveal } from "@/hooks/use-reveal";
 import { useI18n } from "@/i18n/i18n-provider";
 
-const SOCIALS = ["X", "Y", "IG", "FB"];
-const PAYMENTS = ["VISA", "MC", "JCB", "AMEX", "PAY"];
+const SOCIALS = [
+  {
+    href: "https://www.facebook.com/nguyenviet.dung.92",
+    src: "/fb.png",
+    label: "Fanpage Facebook",
+  },
+  {
+    href: "https://www.tiktok.com/@dcomputer7?_r=1&_t=ZS-98octHc6xDp",
+    src: "/tiktok.png",
+    label: "TikTok Shop",
+  },
+  {
+    href: "https://beacons.ai/dcomputer",
+    src: "/beacons.png",
+    label: "Beacons - Link Bio",
+  },
+];
 
 export function SiteFooter() {
   const { locale, t } = useI18n();
@@ -40,14 +55,17 @@ export function SiteFooter() {
           </div>
           <div className="mt-[18px] flex gap-3">
             {SOCIALS.map((social) => (
-              <button
-                key={social}
-                type="button"
-                aria-label={social}
-                className="flex size-8 cursor-pointer items-center justify-center rounded-full bg-line-invert text-xs transition-colors hover:bg-accent"
+              <a
+                key={social.href}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="block size-6 overflow-hidden rounded-full ring-2 ring-white sm:size-7"
               >
-                {social}
-              </button>
+                {/* eslint-disable-next-line @next/next/no-img-element -- static social icon */}
+                <img src={social.src} alt="" className="size-full object-cover" />
+              </a>
             ))}
           </div>
         </div>
@@ -72,16 +90,6 @@ export function SiteFooter() {
 
       <div className="shell flex flex-wrap items-center justify-between gap-2.5 border-t border-line-invert py-5 text-xs">
         <span>{t.copyright}</span>
-        <div className="flex gap-2">
-          {PAYMENTS.map((payment) => (
-            <span
-              key={payment}
-              className="rounded bg-white px-2.5 py-1 text-[11px] font-bold text-ink-strong"
-            >
-              {payment}
-            </span>
-          ))}
-        </div>
       </div>
     </footer>
   );
