@@ -37,8 +37,11 @@ export function ProductSearch() {
     // The field is the control at every width — moving the cart to the bottom
     // bar freed the header row on a phone, so the search no longer collapses
     // to an icon that has to open a panel just to show an input.
-    <div className="relative w-full min-w-0 md:w-[190px] lg:w-[213px]" ref={ref}>
-      <div className="flex items-center overflow-hidden rounded-lg border border-line-strong bg-white focus-within:border-accent">
+    <div
+      className="relative w-full min-w-0 md:w-[190px] lg:w-[280px] xl:w-[320px]"
+      ref={ref}
+    >
+      <div className="site-header__search flex items-center overflow-hidden rounded-md border bg-[#FAF9F6]">
         <input
           value={term}
           onChange={(event) => {

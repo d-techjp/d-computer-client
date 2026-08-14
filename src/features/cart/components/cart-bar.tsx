@@ -31,14 +31,14 @@ export function CartBar() {
       type="button"
       onClick={() => open("cart")}
       aria-label={t.cartTitle}
-      className="fixed inset-x-0 bottom-0 z-40 flex cursor-pointer items-center gap-3 border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-left shadow-[0_-6px_18px_oklch(15%_0.01_260/0.08)] backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex cursor-pointer items-center gap-3 border-t border-[#DDD8CD] bg-[#F7F5F0]/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-left shadow-[0_-6px_18px_oklch(15%_0.01_260/0.08)] backdrop-blur lg:hidden"
     >
       <span className="relative flex-none text-ink-strong">
         <CartIcon />
         {/* Suppressed until rehydration: the server cannot know the stored
             count, so a first paint would flash the wrong number and warn. */}
         <span
-          className="absolute -top-2 -right-2.25 flex size-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white tabular-nums"
+          className="absolute -top-2 -right-2.25 flex size-4 items-center justify-center rounded-full bg-[#C98B14] text-[10px] font-bold text-white tabular-nums"
           suppressHydrationWarning
         >
           {hydrated ? count : ""}
@@ -55,7 +55,7 @@ export function CartBar() {
       <span className="flex-none text-right">
         <span className="block text-[11px] text-ink-muted">{t.cartSubtotal}</span>
         <span
-          className="block text-[15px] font-extrabold text-accent tabular-nums"
+          className="block text-[15px] font-extrabold text-[#9B6808] tabular-nums"
           suppressHydrationWarning
         >
           {hydrated ? formatPrice(subtotal) : ""}

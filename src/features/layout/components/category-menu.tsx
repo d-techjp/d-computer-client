@@ -62,16 +62,12 @@ export function CategoryMenu({
         type="button"
         onClick={() => (open ? close() : setOpen(true))}
         aria-expanded={open}
+        data-open={open}
         className={cn(
-          "flex h-full cursor-pointer items-center gap-2 text-[13px] font-black tracking-[0.4px] transition-colors",
+          "site-header__category-trigger flex h-full cursor-pointer items-center gap-2 text-[13px] font-bold",
           compact
-            ? // Reads as a control sitting on the bar, not a slab bolted to it:
-              // an outlined pill that fills in only once it is actually open.
-              "rounded-lg border px-3.5 py-2 " +
-              (open
-                ? "border-accent bg-accent text-white"
-                : "border-line-strong text-ink-strong hover:border-accent hover:text-accent")
-            : "bg-accent px-4 py-2.5 text-white hover:bg-accent/90",
+            ? "site-header__category-trigger--compact rounded-md border px-3.5 py-2"
+            : "site-header__category-trigger--nav px-5 py-2.5 text-white",
         )}
       >
         <MenuIcon className="size-4" aria-hidden />
@@ -88,7 +84,7 @@ export function CategoryMenu({
       {open ? (
         <div
           className={cn(
-            "absolute top-full left-0 z-50 flex animate-flyout",
+            "site-header__category-flyout absolute top-full left-0 z-50 flex animate-flyout",
             // Padding, never margin: the compact pill stops short of the
             // header's edge, and this has to *bridge* that gap rather than
             // leave a dead strip that fires `mouseleave` on the way down.

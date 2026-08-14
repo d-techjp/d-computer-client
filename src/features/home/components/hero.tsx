@@ -6,6 +6,7 @@ import { ChevronDownIcon } from "@/components/ui/icons";
 import { useI18n } from "@/i18n/i18n-provider";
 
 import { useFitToViewport } from "../hooks/use-fit-to-viewport";
+import { HeroBrandPanel } from "./HeroBrandPanel";
 
 const PARTICLES = [
   { left: "13%", bottom: "12%", size: 3, duration: "5.3s", delay: "-1.8s" },
@@ -105,9 +106,6 @@ export function Hero() {
         <span />
       </div>
       <span className="gaming-hero__scan" aria-hidden />
-      <span className="gaming-hero__serial" aria-hidden>
-        D-COMPUTER // 2026.08
-      </span>
 
       <div className="pointer-events-none absolute inset-0 z-20" aria-hidden>
         {PARTICLES.map((particle) => (
@@ -139,21 +137,8 @@ export function Hero() {
       </div>
 
       <div className="relative z-30 flex flex-1 items-center px-5 pt-6 pb-2 sm:px-10 md:px-[7vw]">
-        <div className="max-w-[560px] lg:max-w-[44%]">
-          <p className="mb-3 text-[11px] font-bold tracking-[2.5px] text-red-200 sm:text-[12px]">
-            {t.heroKicker}
-          </p>
-          {/* Clamped rather than stepped: between the header and the machine
-              below, a phone in landscape has barely 250px of band to fill. */}
-          <h1 className="mb-4 text-[clamp(26px,6.6vw,40px)] leading-[1.1] font-black text-white md:mb-5 lg:text-[clamp(40px,4.4vw,66px)]">
-            {t.heroTitle1}
-            <br />
-            {t.heroTitle2} <span className="text-red-400">{t.heroAccent}</span>
-            {t.heroTitle3}
-          </h1>
-          <p className="max-w-[500px] text-[13.5px] leading-[1.7] text-white/70 md:text-base">
-            {t.heroDesc}
-          </p>
+        <div className="w-full lg:max-w-[46%]">
+          <HeroBrandPanel />
         </div>
       </div>
 
@@ -197,7 +182,10 @@ export function Hero() {
           type="button"
           onClick={scrollToCarousel}
           aria-label={t.heroScrollDown}
-          className="gaming-hero__scroll flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-sm transition-colors hover:border-red-300/70 hover:bg-red-500/25"
+          // Stays white-on-dark at rest and on hover: an amber *fill* under a
+          // white glyph is the one place this palette loses contrast, so hover
+          // only warms the ring and the wash behind it.
+          className="gaming-hero__scroll flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-sm transition-colors hover:border-(--hero-brand) hover:bg-(--hero-glow)"
         >
           <ChevronDownIcon width={22} height={22} />
         </button>

@@ -79,14 +79,14 @@ export function CartMenu() {
           onClick={() => toggle("cart")}
           aria-expanded={open}
           aria-label={t.cartTitle}
-          className="relative cursor-pointer max-lg:hidden"
+          className="site-header__utility-action relative cursor-pointer max-lg:hidden"
         >
           <CartIcon />
           {/* Suppressed until rehydration: the server cannot know the stored
               count, so rendering it on the first paint would flash the wrong
               number and warn about a mismatch. */}
           <span
-            className="absolute -top-2 -right-2.25 flex size-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white tabular-nums"
+            className="absolute -top-2 -right-2.25 flex size-4 items-center justify-center rounded-full bg-[#C98B14] text-[10px] font-bold text-white tabular-nums"
             suppressHydrationWarning
           >
             {hydrated ? count : ""}

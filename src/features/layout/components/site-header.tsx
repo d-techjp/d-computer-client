@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { UserIcon } from "@/components/ui/icons";
 import { navHref } from "@/config/nav";
@@ -45,15 +46,16 @@ export function SiteHeader({
   categories: CategoryNode[];
 }) {
   const condensed = useCondensedHeader();
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-surface">
-      <div className="shell flex flex-nowrap items-center gap-3 py-3 md:gap-4 md:py-3.5">
+    <header className="site-header sticky top-0 z-50">
+      <div className="site-header__main shell flex flex-nowrap items-center gap-3 py-3 md:gap-5 md:py-3.5">
         {/* Leads the row on touch, where the menu is the primary way into the
             catalogue and the left edge is where a thumb expects to find it. */}
         <MobileNav categories={categories} />
 
-        <Link href={`/${locale}`} className="flex min-w-0 flex-none items-center gap-2.5 md:gap-3">
+        <Link href={`/${locale}`} className="flex min-w-0 flex-none items-center gap-2.5 md:gap-3.5">
           {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
           <img
             src="/logo-d-tech.png"
@@ -63,15 +65,15 @@ export function SiteHeader({
               condensed ? "h-8 md:h-9" : "h-9 md:h-11",
             )}
           />
-          <span className="min-w-0">
-            <span className="block truncate text-[15px] font-black tracking-[0.5px] md:text-[17px]">
+          <span className="site-header__brand-copy min-w-0">
+            <span className="block truncate text-[15px] font-bold text-[#171717] md:text-[17px]">
               {t.companyName}
             </span>
             {/* First thing to go when space tightens: it is the one line here
                 that no one is navigating with. */}
             <span
               className={cn(
-                "text-[11px] whitespace-nowrap text-ink-subtle",
+                "text-[11px] whitespace-nowrap text-[#77736B]",
                 condensed ? "hidden" : "hidden sm:block",
               )}
             >
@@ -95,7 +97,7 @@ export function SiteHeader({
 
           <button
             type="button"
-            className="hidden cursor-pointer items-center gap-1.5 text-sm font-medium transition-colors hover:text-accent lg:flex"
+            className="site-header__utility-action hidden cursor-pointer items-center gap-1.5 text-sm font-medium lg:flex"
           >
             <UserIcon />
             {t.login}
@@ -114,25 +116,35 @@ export function SiteHeader({
           renders but is sliced off at the row's height. */}
       <div
         className={cn(
-          "hidden border-line bg-mist-soft transition-[max-height,opacity] duration-200 ease-out lg:block",
-          condensed ? "max-h-0 overflow-hidden opacity-0" : "max-h-16 border-t opacity-100",
+          "site-header__nav hidden transition-[max-height,opacity] duration-200 ease-out lg:block",
+          condensed ? "max-h-0 overflow-hidden opacity-0" : "max-h-16 opacity-100",
         )}
         aria-hidden={condensed}
       >
-        <div className="shell flex items-stretch gap-1">
+        <div className="shell flex min-h-12 items-stretch gap-1">
           <CategoryMenu categories={categories} />
 
-          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 pl-4 text-[13px] font-medium">
-            {t.navItems.map((item, index) => (
-              <Link
-                key={item}
-                href={navHref(locale, index)}
-                tabIndex={condensed ? -1 : 0}
-                className="border-b-2 border-transparent py-2.5 whitespace-nowrap transition-colors hover:border-accent hover:text-accent"
-              >
-                {item}
-              </Link>
-            ))}
+          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 pl-5 text-[13px] font-medium">
+            {t.navItems.map((item, index) => {
+              const href = navHref(locale, index);
+              const homeHref = `/${locale}`;
+              const active =
+                index === 0
+                  ? pathname === homeHref
+                  : href !== homeHref && (pathname === href || pathname.startsWith(`${href}/`));
+
+              return (
+                <Link
+                  key={item}
+                  href={href}
+                  tabIndex={condensed ? -1 : 0}
+                  aria-current={active ? "page" : undefined}
+                  className="site-header__nav-link flex h-full items-center px-3.5 whitespace-nowrap"
+                >
+                  {item}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>

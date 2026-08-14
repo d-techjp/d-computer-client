@@ -12,11 +12,11 @@ import { LanguageSwitcher } from "./language-switcher";
  */
 export function Topbar({ t, locale }: { t: Dictionary; locale: Locale }) {
   return (
-    <div className="bg-ink-strong text-[12.5px] text-ink-invert-strong">
-      <div className="shell flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2">
+    <div className="site-topbar bg-[#0B0C0D] text-[11.5px] text-[#B9B7B0]">
+      <div className="shell flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5">
         {/* Announcements are the first thing to go on a narrow screen: they are
             reassurance, not navigation, and they are repeated in the footer. */}
-        <div className="hidden flex-wrap gap-5 lg:flex">
+        <div className="hidden flex-wrap gap-6 lg:flex">
           {t.topbarItems.map((item) => (
             <span key={item}>{item}</span>
           ))}
@@ -24,7 +24,7 @@ export function Topbar({ t, locale }: { t: Dictionary; locale: Locale }) {
         <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 max-lg:w-full max-lg:justify-between">
           <a
             href={`tel:${t.phone.replace(/-/g, "")}`}
-            className="flex items-center gap-1.5 opacity-85 transition-opacity hover:opacity-100"
+            className="flex items-center gap-1.5 transition-colors hover:text-white [&_svg]:text-[#C98B14]"
           >
             <PhoneIcon />
             {t.phone}
@@ -32,13 +32,13 @@ export function Topbar({ t, locale }: { t: Dictionary; locale: Locale }) {
           <span className="flex items-center gap-[18px]">
             <Link
               href={`/${locale}`}
-              className="hidden opacity-85 transition-opacity hover:opacity-100 sm:inline"
+              className="hidden transition-colors hover:text-white sm:inline"
             >
               {t.contact}
             </Link>
             <Link
               href={`/${locale}`}
-              className="hidden opacity-85 transition-opacity hover:opacity-100 sm:inline"
+              className="hidden transition-colors hover:text-white sm:inline"
             >
               {t.about}
             </Link>
