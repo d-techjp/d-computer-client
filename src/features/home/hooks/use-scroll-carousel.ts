@@ -124,7 +124,10 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
   }, [itemCount, step]);
 
   const onPointerDown = useCallback((event: PointerEvent<T>) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
+    // Mobile browsers have compositor-driven scrolling with proper kinetic
+    // deceleration. Keeping touch out of this JS drag path preserves that
+    // native 120 Hz feel; mouse dragging still needs the custom behaviour.
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
 
     const track = ref.current;
     if (!track) return;
@@ -185,11 +188,8 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       if (drag.current.didDrag) startMomentum(drag.current.velocity);
-      // Mouse hover should keep autoplay paused while a card is being read;
-      // a touch interaction has no hover state, so resume after its drag ends.
-      if (event.pointerType !== "mouse") resume();
     },
-    [resume, startMomentum],
+    [startMomentum],
   );
 
   const onPointerCancel = useCallback(
@@ -201,9 +201,8 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
-      if (event.pointerType !== "mouse") resume();
     },
-    [resume],
+    [],
   );
 
   const onClickCapture = useCallback((event: MouseEvent<T>) => {
@@ -221,6 +220,15 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     step,
     pause,
     resume,
-    dragHandlers: { onClickCapture, onPointerCancel, onPointerDown, onPointerMove, onPointerUp },
+    dragHandlers: {
+      onClickCapture,
+      onPointerCancel,
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onTouchCancel: resume,
+      onTouchEnd: resume,
+      onTouchStart: pause,
+    },
   };
 }

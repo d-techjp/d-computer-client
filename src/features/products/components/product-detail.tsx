@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/ui/icons";
@@ -68,7 +68,6 @@ export function ProductDetail({
     variantId: string;
     image: string;
   } | null>(null);
-  const [imageSlideDirection, setImageSlideDirection] = useState<-1 | 0 | 1>(0);
   const overrideImage =
     selectedImageOverride && selectedImageOverride.variantId === selectedVariant?.id
       ? selectedImageOverride.image
@@ -77,7 +76,8 @@ export function ProductDetail({
     overrideImage && displayedImages.includes(overrideImage) ? overrideImage : images[0];
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const imageDrag = useRef({ pointerId: -1, startX: 0, didSwipe: false });
+  const imageScrollerRef = useRef<HTMLDivElement>(null);
+  const imageScrollTimeout = useRef<number | null>(null);
   const { addVariant } = useCartActions();
   const openPanel = useUiStore((state) => state.open);
 
@@ -92,48 +92,54 @@ export function ProductDetail({
     addVariant(product, selectedVariant, quantity);
     openPanel("cart");
   };
-  const selectImage = (image: string, direction: -1 | 0 | 1 = 0) => {
-    setImageSlideDirection(direction);
+  const selectImage = (image: string) => {
     setSelectedImageOverride({ variantId: selectedVariant?.id ?? "", image });
   };
   const selectImageByOffset = (offset: -1 | 1) => {
     const currentIndex = Math.max(0, displayedImages.indexOf(selectedImage));
     const nextIndex = (currentIndex + offset + displayedImages.length) % displayedImages.length;
-    selectImage(displayedImages[nextIndex], offset);
+    selectImage(displayedImages[nextIndex]);
   };
-  const handleImagePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
 
-    imageDrag.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      didSwipe: false,
-    };
-    // The pointer often leaves the frame before a desktop drag ends. Capture
-    // it so pointer-up still reaches this handler and cannot become a zoom click.
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-  const handleImagePointerUp = (event: PointerEvent<HTMLButtonElement>) => {
-    if (imageDrag.current.pointerId !== event.pointerId) return;
+  useEffect(() => {
+    const scroller = imageScrollerRef.current;
+    const index = displayedImages.indexOf(selectedImage);
+    if (!scroller || index < 0 || scroller.clientWidth === 0) return;
 
-    const distance = event.clientX - imageDrag.current.startX;
-    imageDrag.current.pointerId = -1;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+    const targetLeft = index * scroller.clientWidth;
+    if (Math.abs(scroller.scrollLeft - targetLeft) > 1) {
+      scroller.scrollTo({ left: targetLeft, behavior: "smooth" });
     }
-    if (Math.abs(distance) < 36 || displayedImages.length <= 1) return;
+  }, [displayedImages, selectedImage]);
 
-    imageDrag.current.didSwipe = true;
-    selectImageByOffset(distance > 0 ? -1 : 1);
+  useEffect(() => {
+    return () => {
+      if (imageScrollTimeout.current !== null) {
+        window.clearTimeout(imageScrollTimeout.current);
+      }
+    };
+  }, []);
+
+  const handleImageScroll = () => {
+    if (imageScrollTimeout.current !== null) {
+      window.clearTimeout(imageScrollTimeout.current);
+    }
+
+    imageScrollTimeout.current = window.setTimeout(() => {
+      const scroller = imageScrollerRef.current;
+      if (!scroller || scroller.clientWidth === 0) return;
+
+      const index = Math.round(scroller.scrollLeft / scroller.clientWidth);
+      const image = displayedImages[index];
+      if (image && image !== selectedImage) selectImage(image);
+    }, 80);
   };
 
   return (
     <>
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:gap-14">
         <section aria-label={t.detailSelectedImage}>
-          <div
-            className="relative aspect-4/3 touch-pan-y overflow-hidden rounded-2xl bg-white cursor-pointer"
-          >
+          <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-white">
             {notForSale ? (
               <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
                 {t.badgeNotForSale}
@@ -148,44 +154,30 @@ export function ProductDetail({
               </span>
             ) : null}
 
-            <button
-              type="button"
-              onPointerDown={handleImagePointerDown}
-              onPointerUp={handleImagePointerUp}
-              onPointerCancel={(event) => {
-                if (
-                  imageDrag.current.pointerId !== -1 &&
-                  event.currentTarget.hasPointerCapture(imageDrag.current.pointerId)
-                ) {
-                  event.currentTarget.releasePointerCapture(imageDrag.current.pointerId);
-                }
-                imageDrag.current.pointerId = -1;
-                imageDrag.current.didSwipe = false;
-              }}
-              onClick={() => {
-                if (imageDrag.current.didSwipe) {
-                  imageDrag.current.didSwipe = false;
-                  return;
-                }
-                setPreviewImage(selectedImage);
-              }}
-              aria-label={t.detailOpenImage}
-              className="absolute inset-0 cursor-zoom-in"
+            <div
+              ref={imageScrollerRef}
+              onScroll={handleImageScroll}
+              className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <Image
-                key={selectedImage}
-                src={selectedImage}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 660px"
-                className={cn(
-                  "object-contain p-4",
-                  imageSlideDirection === 1 && "product-image-slide-from-right",
-                  imageSlideDirection === -1 && "product-image-slide-from-left",
-                )}
-              />
-            </button>
+              {displayedImages.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  onClick={() => setPreviewImage(image)}
+                  aria-label={t.detailOpenImage}
+                  className="relative h-full w-full flex-none snap-center cursor-zoom-in"
+                >
+                  <Image
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 1024px) 100vw, 660px"
+                    className="object-contain p-4"
+                  />
+                </button>
+              ))}
+            </div>
             {displayedImages.length > 1 ? (
               <>
                 <button
@@ -212,7 +204,7 @@ export function ProductDetail({
             images={displayedImages}
             selectedImage={selectedImage}
             productName={product.name}
-            onSelect={(image) => selectImage(image)}
+              onSelect={(image) => selectImage(image)}
           />
         </section>
 
@@ -252,7 +244,6 @@ export function ProductDetail({
               product={product}
               selectedVariant={selectedVariant}
               onSelect={(variantId) => {
-                setImageSlideDirection(0);
                 setSelectedVariantId(variantId);
               }}
             />

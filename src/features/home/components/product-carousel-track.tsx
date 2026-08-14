@@ -37,7 +37,7 @@ export function ProductCarouselTrack({
           ref={ref}
           {...dragHandlers}
           onDragStart={(event) => event.preventDefault()}
-          className="flex cursor-grab touch-pan-y gap-4 overflow-x-auto pt-1 pb-6 select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] md:gap-[22px] [&::-webkit-scrollbar]:hidden"
+          className="flex cursor-grab gap-4 overflow-x-auto pt-1 pb-6 select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] md:gap-[22px] [&::-webkit-scrollbar]:hidden"
         >
           {products.map((product, index) => (
             <li
