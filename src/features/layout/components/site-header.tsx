@@ -115,13 +115,14 @@ export function SiteHeader({
           clips the category flyout, which drops out of this row — the panel
           renders but is sliced off at the row's height. */}
       <div
+        data-fit-collapsible
         className={cn(
           "site-header__nav hidden transition-[max-height,opacity] duration-200 ease-out lg:block",
           condensed ? "max-h-0 overflow-hidden opacity-0" : "max-h-16 opacity-100",
         )}
         aria-hidden={condensed}
       >
-        <div className="shell flex min-h-12 items-stretch gap-1">
+        <div data-fit-expanded-content className="shell flex min-h-12 items-stretch gap-1">
           <CategoryMenu categories={categories} />
 
           <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 pl-5 text-[13px] font-medium">

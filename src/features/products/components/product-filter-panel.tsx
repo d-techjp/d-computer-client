@@ -1,21 +1,22 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import type { Brand } from "@/features/catalog/types";
-import { CheckIcon } from "@/components/ui/icons";
+import { CheckIcon, ChevronDownIcon, SearchIcon } from "@/components/ui/icons";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils/cn";
 
 import { priceBucketLabel } from "../facet-labels";
 import { PRICE_BUCKETS, activeFilterCount, type PriceBucket, type ProductQuery } from "../filters";
 
+const BRAND_PREVIEW_COUNT = 6;
+
 /**
  * The filter sidebar. Pure presentation over `query` + the reference lists:
- * it holds no state of its own, because the *URL* is the state. That is what
- * makes a filtered view shareable, bookmarkable and restorable with the back
- * button — and it is why the same component can render in the desktop
- * sidebar and inside the mobile drawer without the two ever disagreeing.
+ * filter values live in the *URL*, making a filtered view shareable,
+ * bookmarkable and restorable with the back button. The brand group's local
+ * state only controls search and disclosure; it never changes filter meaning.
  *
  * Each group is single-select, so clicking an option replaces the previous
  * selection and clicking it again clears it. Category navigation lives in the
@@ -63,14 +64,7 @@ export function ProductFilterPanel({
 
       {brands.length > 0 ? (
         <FilterGroup title={t.filterGroups.brand} first={!showHeading}>
-          {brands.map((brand) => (
-            <FilterOption
-              key={brand.id}
-              label={brand.name}
-              checked={query.brandId === brand.id}
-              onChange={() => onSetBrand(brand.id)}
-            />
-          ))}
+          <BrandFilter brands={brands} selectedId={query.brandId} onSelect={onSetBrand} />
         </FilterGroup>
       ) : null}
 
@@ -92,6 +86,98 @@ export function ProductFilterPanel({
           onChange={onToggleInStock}
         />
       </FilterGroup>
+    </div>
+  );
+}
+
+function BrandFilter({
+  brands,
+  selectedId,
+  onSelect,
+}: {
+  brands: Brand[];
+  selectedId: string;
+  onSelect: (brandId: string) => void;
+}) {
+  const { t } = useI18n();
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState(false);
+
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const filteredBrands = useMemo(
+    () =>
+      normalizedSearch
+        ? brands.filter((brand) => brand.name.toLocaleLowerCase().includes(normalizedSearch))
+        : brands,
+    [brands, normalizedSearch],
+  );
+
+  const visibleBrands = useMemo(() => {
+    if (normalizedSearch || expanded || brands.length <= BRAND_PREVIEW_COUNT) return filteredBrands;
+
+    const preview = brands.slice(0, BRAND_PREVIEW_COUNT);
+    const selected = brands.find((brand) => brand.id === selectedId);
+    return selected && !preview.some((brand) => brand.id === selected.id)
+      ? [...preview, selected]
+      : preview;
+  }, [brands, expanded, filteredBrands, normalizedSearch, selectedId]);
+
+  const canExpand = brands.length > BRAND_PREVIEW_COUNT;
+  const useScrollableList = expanded || normalizedSearch.length > 0;
+
+  return (
+    <div className="flex flex-col gap-3">
+      {canExpand ? (
+        <label className="flex h-9 items-center gap-2 rounded-md border border-line bg-surface px-2.5 transition-colors focus-within:border-accent">
+          <SearchIcon className="size-3.5 flex-none text-ink-faint" />
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={t.filterBrandSearch}
+            aria-label={t.filterBrandSearch}
+            className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-faint"
+          />
+        </label>
+      ) : null}
+
+      <div
+        className={cn(
+          "flex flex-col gap-2.5",
+          useScrollableList && "max-h-52 overflow-y-auto overscroll-contain pr-1",
+        )}
+      >
+        {visibleBrands.length > 0 ? (
+          visibleBrands.map((brand) => (
+            <FilterOption
+              key={brand.id}
+              label={brand.name}
+              checked={selectedId === brand.id}
+              onChange={() => onSelect(brand.id)}
+            />
+          ))
+        ) : (
+          <p className="py-2 text-[12.5px] text-ink-faint">{t.filterBrandEmpty}</p>
+        )}
+      </div>
+
+      {canExpand && !normalizedSearch ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((current) => !current)}
+          className="flex w-fit cursor-pointer items-center gap-1.5 text-[12.5px] font-semibold text-accent transition-colors hover:text-accent/80"
+        >
+          {expanded
+            ? t.filterBrandShowLess
+            : t.filterBrandShowMore.replace(
+                "{count}",
+                String(Math.max(0, brands.length - BRAND_PREVIEW_COUNT)),
+              )}
+          <ChevronDownIcon
+            className={cn("size-3.5 transition-transform duration-200", expanded && "rotate-180")}
+          />
+        </button>
+      ) : null}
     </div>
   );
 }

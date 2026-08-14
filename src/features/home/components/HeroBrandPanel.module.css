@@ -24,16 +24,16 @@
 }
 
 .frameLine {
-  stroke: rgba(178, 125, 24, 0.52);
+  stroke: rgba(225, 176, 66, 0.68);
   stroke-width: 1px;
 }
 
 .ledTrace {
-  stroke: #ffe8a1;
+  stroke: #fff3cf;
   stroke-width: 3px;
   stroke-linecap: round;
   stroke-dasharray: 54 946;
-  filter: drop-shadow(0 0 4px rgba(255, 184, 22, 0.88));
+  filter: drop-shadow(0 0 5px rgba(255, 198, 42, 0.92));
   animation: led-run 7.2s linear infinite;
 }
 
@@ -124,7 +124,7 @@
   letter-spacing: 0;
   line-height: 0.86;
   white-space: nowrap;
-  -webkit-text-stroke: 1px rgba(213, 157, 45, 0.48);
+  -webkit-text-stroke: 1px rgba(240, 194, 87, 0.7);
   text-shadow:
     -1px -1px 0 rgba(255, 235, 187, 0.11),
     1px 1px 0 rgba(0, 0, 0, 0.94),
@@ -160,7 +160,7 @@
 
 .eyebrow {
   margin: 0 0 13px;
-  color: #eeb535;
+  color: #ffd66b;
   font-size: clamp(11px, 0.9vw, 13px);
   font-weight: 800;
   letter-spacing: 0;

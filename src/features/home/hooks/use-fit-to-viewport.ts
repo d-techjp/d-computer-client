@@ -24,9 +24,18 @@ export function useFitToViewport<T extends HTMLElement>() {
     if (!element) return;
 
     const measure = () => {
-      // A sticky header still occupies its flow space, so this stays the
-      // height of everything above the element at any scroll position.
-      const offset = element.getBoundingClientRect().top + window.scrollY;
+      const collapsible = document.querySelector<HTMLElement>("[data-fit-collapsible]");
+      const expandedContent = collapsible?.querySelector<HTMLElement>("[data-fit-expanded-content]");
+      const collapsedHeight = collapsible?.getBoundingClientRect().height ?? 0;
+      // Measure the real row, not the collapsible wrapper's `scrollHeight`:
+      // the latter also includes decorative pseudo-elements below the nav.
+      const expandedHeight = expandedContent?.getBoundingClientRect().height ?? collapsedHeight;
+
+      // `top + scrollY` changes when the sticky header folds its navigation
+      // row. Always add back the hidden part so a resize/HMR while condensed
+      // cannot make the hero taller after the header expands again.
+      const hiddenHeight = Math.max(0, expandedHeight - collapsedHeight);
+      const offset = element.getBoundingClientRect().top + window.scrollY + hiddenHeight;
       element.style.setProperty("--fit-offset", `${Math.max(0, Math.round(offset))}px`);
     };
 
