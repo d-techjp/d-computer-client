@@ -117,10 +117,7 @@
 
 .title {
   margin: 0;
-  background: linear-gradient(180deg, #ffef76 0%, #ffd700 14%, #ffd700 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #ffd700;
   font-family: "Arial Black", var(--font-sans), sans-serif;
   font-size: clamp(72px, 7.7vw, 118px);
   font-weight: 900;
@@ -315,4 +312,5 @@
   .nodeThree {
     animation: none;
   }
+
 }

@@ -27,6 +27,8 @@ type CartState = {
   requestStatus: CartRequestStatus;
   error: string | null;
   lastMutation: CartMutationResult["result"] | null;
+  /** Quantity acknowledged locally while an add request is still in flight. */
+  pendingItemCount: number;
 };
 
 type CartActions = {
@@ -56,6 +58,7 @@ const INITIAL_STATE: CartState = {
   requestStatus: "idle",
   error: null,
   lastMutation: null,
+  pendingItemCount: 0,
 };
 
 const EMPTY_ITEMS: CartItem[] = [];
@@ -124,15 +127,34 @@ export const useCartStore = create<CartStore>()(
       },
 
       addVariant: async (_product, variant, quantity = 1) => {
+        const requestedQuantity = Math.min(99, quantity);
+        // The backend remains authoritative, but the badge should acknowledge
+        // the tap immediately — especially when creating a cart takes a round trip.
+        set((state) => ({
+          pendingItemCount: state.pendingItemCount + requestedQuantity,
+          requestStatus: "mutating",
+          error: null,
+          lastMutation: null,
+        }));
         const cartId = await get().ensureCart();
-        if (!cartId) return null;
+        if (!cartId) {
+          set((state) => ({ pendingItemCount: Math.max(0, state.pendingItemCount - requestedQuantity) }));
+          return null;
+        }
 
         set({ requestStatus: "mutating", error: null, lastMutation: null });
+
         try {
-          const mutation = await addCartItem(cartId, variant.id, Math.min(99, quantity));
-          set({ cart: mutation.cart, requestStatus: "idle", lastMutation: mutation.result });
+          const mutation = await addCartItem(cartId, variant.id, requestedQuantity);
+          set((state) => ({
+            cart: mutation.cart,
+            pendingItemCount: Math.max(0, state.pendingItemCount - requestedQuantity),
+            requestStatus: "idle",
+            lastMutation: mutation.result,
+          }));
           return mutation;
         } catch (cause) {
+          set((state) => ({ pendingItemCount: Math.max(0, state.pendingItemCount - requestedQuantity) }));
           await recoverMutationFailure(cause, cartId, set);
           return null;
         }
@@ -142,16 +164,38 @@ export const useCartStore = create<CartStore>()(
         const cartId = get().cartId;
         if (!cartId) return null;
 
-        set({ requestStatus: "mutating", error: null, lastMutation: null });
+        const previousCart = get().cart;
+        const currentItem = previousCart?.items.find((item) => item.id === itemId);
+        const nextQuantity = Math.max(1, Math.min(99, quantity));
+        if (!previousCart || !currentItem) return null;
+
+        const delta = nextQuantity - currentItem.quantity;
+        set({
+          cart: {
+            ...previousCart,
+            itemCount: previousCart.itemCount + delta,
+            subtotal: previousCart.subtotal + currentItem.unitPrice * delta,
+            items: previousCart.items.map((item) =>
+              item.id === itemId
+                ? { ...item, quantity: nextQuantity, lineTotal: item.unitPrice * nextQuantity }
+                : item,
+            ),
+          },
+          requestStatus: "mutating",
+          error: null,
+          lastMutation: null,
+        });
+
         try {
           const mutation = await updateCartItem(
             cartId,
             itemId,
-            Math.max(1, Math.min(99, quantity)),
+            nextQuantity,
           );
           set({ cart: mutation.cart, requestStatus: "idle", lastMutation: mutation.result });
           return mutation;
         } catch (cause) {
+          set({ cart: previousCart });
           await recoverMutationFailure(cause, cartId, set);
           return null;
         }
@@ -256,7 +300,8 @@ async function recoverMutationFailure(
 export const useCart = () => useCartStore((state) => state.cart);
 export const useCartId = () => useCartStore((state) => state.cartId);
 export const useCartLines = () => useCartStore((state) => state.cart?.items ?? EMPTY_ITEMS);
-export const useCartCount = () => useCartStore((state) => state.cart?.itemCount ?? 0);
+export const useCartCount = () =>
+  useCartStore((state) => (state.cart?.itemCount ?? 0) + state.pendingItemCount);
 export const useCartSubtotal = () => useCartStore((state) => state.cart?.subtotal ?? 0);
 export const useCartHasBlockingIssues = () =>
   useCartStore((state) => state.cart?.hasBlockingIssues ?? false);

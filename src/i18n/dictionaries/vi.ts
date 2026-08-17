@@ -62,6 +62,7 @@ const vi: typeof ja = {
   cartIncrease: "Tăng số lượng",
   cartDecrease: "Giảm số lượng",
   cartLoading: "Đang tải giỏ hàng...",
+  cartAddedToast: "Đã thêm {product} vào giỏ hàng",
   cartLoadError: "Không thể tải giỏ hàng",
   cartRetry: "Thử lại",
   cartMutationAdjusted: "Số lượng đã được điều chỉnh theo tồn kho hiện tại.",
@@ -120,6 +121,7 @@ const vi: typeof ja = {
   checkoutDiscount: "Giảm giá",
   checkoutAfterAddress: "Tính sau khi xác nhận địa chỉ",
   checkoutPaymentMethod: "Phương thức thanh toán",
+  checkoutPaymentNote: "Thanh toán khi nhận hàng hoặc chuyển khoản (xác nhận với admin sau).",
   checkoutPaymentMethods: {
     cod: "Thanh toán khi nhận hàng",
     bank_transfer: "Chuyển khoản ngân hàng",

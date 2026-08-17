@@ -21,10 +21,10 @@ export function AddToCart({ product, disabled = false }: { product: Product; dis
 
   const { add } = useCartActions();
   const cartBusy = useCartBusy();
-  const openPanel = useUiStore((state) => state.open);
+  const showToast = useUiStore((state) => state.showToast);
 
   const handleAdd = () => {
-    openPanel("cart");
+    showToast(t.cartAddedToast.replace("{product}", product.name));
     void add(product, quantity);
   };
 

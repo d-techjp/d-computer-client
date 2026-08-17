@@ -80,7 +80,7 @@ export function ProductDetail({
   const imageScrollTimeout = useRef<number | null>(null);
   const { addVariant } = useCartActions();
   const cartBusy = useCartBusy();
-  const openPanel = useUiStore((state) => state.open);
+  const showToast = useUiStore((state) => state.showToast);
 
   const discount = selectedVariant ? variantDiscountPercent(selectedVariant) : 0;
   const notForSale = Boolean(selectedVariant && !selectedVariant.isActive);
@@ -90,7 +90,7 @@ export function ProductDetail({
 
   const handleAdd = () => {
     if (!selectedVariant) return;
-    openPanel("cart");
+    showToast(t.cartAddedToast.replace("{product}", product.name));
     void addVariant(product, selectedVariant, quantity);
   };
   const selectImage = (image: string) => {

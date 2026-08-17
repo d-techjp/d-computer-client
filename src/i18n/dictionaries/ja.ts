@@ -60,6 +60,7 @@ const ja = {
   cartIncrease: "数量を増やす",
   cartDecrease: "数量を減らす",
   cartLoading: "カートを読み込んでいます...",
+  cartAddedToast: "{product}をカートに追加しました",
   cartLoadError: "カートを読み込めませんでした",
   cartRetry: "再試行",
   cartMutationAdjusted: "在庫数に合わせて数量を調整しました。",
@@ -118,6 +119,7 @@ const ja = {
   checkoutDiscount: "割引",
   checkoutAfterAddress: "お届け先確認後に計算",
   checkoutPaymentMethod: "お支払い方法",
+  checkoutPaymentNote: "商品到着時のお支払い、または銀行振込をご利用いただけます。ご注文後、担当者より確認のご連絡をいたします。",
   checkoutPaymentMethods: {
     cod: "代金引換",
     bank_transfer: "銀行振込",

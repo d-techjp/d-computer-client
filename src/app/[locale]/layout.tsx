@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { CartBar } from "@/features/cart/components/cart-bar";
+import { CartAddToast } from "@/features/cart/components/cart-add-toast";
 import { buildCategoryTree } from "@/features/catalog/tree";
 import { SiteChromeGate } from "@/features/layout/components/site-chrome-gate";
 import { SiteFooter } from "@/features/layout/components/site-footer";
@@ -106,6 +107,7 @@ export default async function LocaleLayout({
           </SiteChromeGate>
           <SocialBubbles />
           <CartBar />
+          <CartAddToast />
         </I18nProvider>
       </body>
     </html>

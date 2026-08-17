@@ -15,18 +15,26 @@ import { create } from "zustand";
  */
 export type Panel = "cart" | "language" | "search" | "nav" | null;
 
+type Toast = { id: number; message: string } | null;
+
 type UiStore = {
   openPanel: Panel;
+  toast: Toast;
   toggle: (panel: Exclude<Panel, null>) => void;
   open: (panel: Exclude<Panel, null>) => void;
   close: () => void;
+  showToast: (message: string) => void;
+  dismissToast: () => void;
 };
 
 export const useUiStore = create<UiStore>()((set) => ({
   openPanel: null,
+  toast: null,
   toggle: (panel) => set((state) => ({ openPanel: state.openPanel === panel ? null : panel })),
   open: (panel) => set({ openPanel: panel }),
   close: () => set({ openPanel: null }),
+  showToast: (message) => set({ toast: { id: Date.now(), message } }),
+  dismissToast: () => set({ toast: null }),
 }));
 
 export const useIsPanelOpen = (panel: Exclude<Panel, null>) =>

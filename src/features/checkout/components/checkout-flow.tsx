@@ -176,7 +176,7 @@ export function CheckoutFlow() {
   };
 
   return (
-    <>
+    <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
       <CheckoutSteps step={step} />
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
@@ -268,8 +268,6 @@ export function CheckoutFlow() {
           ) : preview ? (
             <ReviewPanel
               preview={preview}
-              paymentMethod={paymentMethod}
-              onPaymentMethodChange={setPaymentMethod}
               onEdit={() => {
                 setError("");
                 setStep("address");
@@ -278,7 +276,7 @@ export function CheckoutFlow() {
           ) : null}
         </section>
 
-        <aside className="border border-line bg-white p-5 shadow-card sm:p-6 lg:sticky lg:top-6">
+        <aside className="border border-line bg-white p-5 shadow-card sm:p-6 lg:sticky lg:top-6 lg:border-0">
           <div className="mb-5 flex items-end justify-between gap-4">
             <h2 className="text-lg font-black">{t.checkoutSummary}</h2>
             <span className="text-xs text-ink-muted">
@@ -288,7 +286,7 @@ export function CheckoutFlow() {
 
           {step === "address" ? <CompactOrderItems items={displayedItems} /> : null}
 
-          <dl className="space-y-3 border-y border-line py-4 text-[13.5px]">
+          <dl className="space-y-3 border-t border-line py-4 text-[13.5px]">
             <PriceRow label={t.cartSubtotal} value={pricing.subtotal} />
             {step === "review" ? (
               <>
@@ -315,7 +313,7 @@ export function CheckoutFlow() {
           ) : null}
 
           {step === "address" ? (
-            <div className="grid grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] gap-2.5">
+            <div className="hidden grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] gap-2.5 lg:grid">
               <Link
                 href={`/${locale}/cart`}
                 className={cn(
@@ -336,7 +334,7 @@ export function CheckoutFlow() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] gap-2.5">
+            <div className="hidden grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] gap-2.5 lg:grid">
               <Button
                 type="button"
                 variant="outline"
@@ -376,7 +374,39 @@ export function CheckoutFlow() {
           ) : null}
         </aside>
       </div>
-    </>
+
+      {/* On phones the amount and primary action remain in thumb reach while
+          the address/review content scrolls independently above this bar. */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-white/96 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_18px_oklch(15%_0.01_260/0.1)] backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-xl items-center gap-3">
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] text-ink-muted">{t.checkoutTotal}</span>
+            <strong className="block truncate text-lg leading-5 font-black text-accent tabular-nums">
+              {formatPrice(pricing.total)}
+            </strong>
+          </span>
+          {step === "address" ? (
+            <Button
+              type="submit"
+              form="shipping-form"
+              disabled={previewing}
+              className="min-h-11 min-w-[10.5rem] px-4 text-center text-[13px]"
+            >
+              {previewing ? t.checkoutPreviewing : t.checkoutConfirmAddress}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => void placeOrder()}
+              disabled={submitting || !preview?.canPlaceOrder || !paymentMethod}
+              className="min-h-11 min-w-[10.5rem] px-4 text-center text-[13px]"
+            >
+              {submitting ? t.checkoutPlacingOrder : t.checkoutPlaceOrder}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -473,13 +503,9 @@ function CheckoutSteps({ step }: { step: CheckoutStep }) {
 
 function ReviewPanel({
   preview,
-  paymentMethod,
-  onPaymentMethodChange,
   onEdit,
 }: {
   preview: CheckoutPreview;
-  paymentMethod: PaymentMethod | null;
-  onPaymentMethodChange: (method: PaymentMethod) => void;
   onEdit: () => void;
 }) {
   const { t } = useI18n();
@@ -508,20 +534,9 @@ function ReviewPanel({
         <p className="mt-2 text-[13px] text-ink-body">{address.phone}</p>
       </section>
 
-      {preview.paymentMethods.length > 0 ? (
-        <label className="mb-7 block max-w-sm">
-          <span className="mb-2 block text-[12.5px] font-bold">{t.checkoutPaymentMethod}</span>
-          <select
-            value={paymentMethod ?? ""}
-            onChange={(event) => onPaymentMethodChange(event.target.value as PaymentMethod)}
-            className={cn(fieldClass, "cursor-pointer")}
-          >
-            {preview.paymentMethods.map((method) => (
-              <option key={method} value={method}>{t.checkoutPaymentMethods[method]}</option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+      <p className="mb-7 border-l-2 border-[#D4AF37] bg-[#FFF8E8] px-3.5 py-3 text-[13px] leading-5 text-ink-body">
+        {t.checkoutPaymentNote}
+      </p>
 
       <ReadOnlyOrderItems items={preview.items} />
     </div>

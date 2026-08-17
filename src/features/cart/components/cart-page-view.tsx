@@ -159,6 +159,7 @@ export function CartPageView() {
                 </span>
                 <QuantityStepper
                   size="sm"
+                  className="w-fit"
                   value={line.quantity}
                   onIncrement={() => void increment(line.id)}
                   onDecrement={() => void decrement(line.id)}
