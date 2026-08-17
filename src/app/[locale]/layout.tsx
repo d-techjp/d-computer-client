@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { CartBar } from "@/features/cart/components/cart-bar";
 import { buildCategoryTree } from "@/features/catalog/tree";
+import { SiteChromeGate } from "@/features/layout/components/site-chrome-gate";
 import { SiteFooter } from "@/features/layout/components/site-footer";
 import { SiteHeader } from "@/features/layout/components/site-header";
 import { SocialBubbles } from "@/features/layout/components/social-bubbles";
@@ -92,13 +93,17 @@ export default async function LocaleLayout({
       <body className={`${notoSans.variable} ${notoSansJp.variable} antialiased`}>
         {/* The dictionary is serialised into the client tree exactly once. */}
         <I18nProvider value={{ locale, t }}>
-          <Topbar t={t} locale={locale} />
-          <SiteHeader t={t} locale={locale} categories={buildCategoryTree(categories)} />
+          <SiteChromeGate>
+            <Topbar t={t} locale={locale} />
+            <SiteHeader t={t} locale={locale} categories={buildCategoryTree(categories)} />
+          </SiteChromeGate>
           <main>{children}</main>
-          <SiteFooter />
-          {/* The bottom bar is fixed, so the last of the footer would sit under
-              it forever without a matching run-off below `lg`. */}
-          <div className="h-[calc(4.25rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden />
+          <SiteChromeGate>
+            <SiteFooter />
+            {/* The bottom bar is fixed, so the last of the footer would sit under
+                it forever without a matching run-off below `lg`. */}
+            <div className="h-[calc(4.25rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden />
+          </SiteChromeGate>
           <SocialBubbles />
           <CartBar />
         </I18nProvider>

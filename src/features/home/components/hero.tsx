@@ -76,7 +76,7 @@ export function Hero() {
       // Below `lg` the cart bar is fixed over the bottom of the screen. The
       // banner still fills the viewport, but its contents stop above the bar
       // rather than being covered by it — same run-off the footer gets.
-      className="gaming-hero relative flex w-full flex-col overflow-hidden border-b border-black max-lg:pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
+      className="gaming-hero relative flex w-full flex-col overflow-hidden border-b border-[#d4af37]/45 max-lg:pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
     >
       <div className="gaming-hero__ambient" aria-hidden />
       <span className="gaming-hero__beam gaming-hero__beam--one" aria-hidden />
@@ -182,10 +182,7 @@ export function Hero() {
           type="button"
           onClick={scrollToCarousel}
           aria-label={t.heroScrollDown}
-          // Stays white-on-dark at rest and on hover: an amber *fill* under a
-          // white glyph is the one place this palette loses contrast, so hover
-          // only warms the ring and the wash behind it.
-          className="gaming-hero__scroll flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-sm transition-colors hover:border-(--hero-brand) hover:bg-(--hero-glow)"
+          className="gaming-hero__scroll flex size-11 cursor-pointer items-center justify-center rounded-full border border-[#d4af37]/55 bg-[#fffdf8]/70 text-[#1c1b18] backdrop-blur-sm transition-colors hover:border-[#ffd700] hover:bg-[#fff9e8]"
         >
           <ChevronDownIcon width={22} height={22} />
         </button>

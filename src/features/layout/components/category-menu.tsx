@@ -67,7 +67,7 @@ export function CategoryMenu({
           "site-header__category-trigger flex h-full cursor-pointer items-center gap-2 text-[13px] font-bold",
           compact
             ? "site-header__category-trigger--compact rounded-md border px-3.5 py-2"
-            : "site-header__category-trigger--nav px-5 py-2.5 text-white",
+            : "site-header__category-trigger--nav px-5 py-2.5",
         )}
       >
         <MenuIcon className="size-4" aria-hidden />

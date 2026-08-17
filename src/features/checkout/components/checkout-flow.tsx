@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import { CheckIcon, PhoneIcon } from "@/components/ui/icons";
+import { CheckIcon } from "@/components/ui/icons";
 import {
   useCartActions,
   useCartCount,
@@ -78,42 +78,7 @@ export function CheckoutFlow() {
   if (!hydrated || (cartLoading && lines.length === 0)) return <CheckoutSkeleton />;
 
   if (createdOrder) {
-    return (
-      <section className="mx-auto max-w-2xl border border-line bg-white px-5 py-12 text-center shadow-card sm:px-10 sm:py-16">
-        <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#EAF7EF] text-stock">
-          <CheckIcon className="size-6" />
-        </span>
-        <p className="mb-2 text-[11px] font-black tracking-[1.2px] text-stock uppercase">
-          {t.checkoutSuccessEyebrow}
-        </p>
-        <h2 className="mb-3 text-2xl font-black md:text-3xl">{t.checkoutSuccessTitle}</h2>
-        <p className="mx-auto mb-6 max-w-lg text-[13.5px] leading-6 text-ink-muted">
-          {t.checkoutSuccessDesc}
-        </p>
-        <div className="mx-auto mb-7 max-w-sm border-y border-line py-4">
-          <span className="block text-xs text-ink-muted">{t.checkoutOrderCode}</span>
-          <strong className="mt-1 block text-xl tracking-[1px]">{createdOrder.code}</strong>
-          <span className="mt-2 block text-lg font-black text-accent tabular-nums">
-            {formatPrice(createdOrder.total)}
-          </span>
-        </div>
-        <p className="mx-auto mb-7 max-w-md text-xs leading-5 font-semibold text-[#9B6808]">
-          {t.checkoutSaveOrderCode}
-        </p>
-        <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Link href={`/${locale}/products`} className={buttonVariants({ size: "md" })}>
-            {t.checkoutContinueShopping}
-          </Link>
-          <a
-            href={`tel:${t.phone.replace(/-/g, "")}`}
-            className={buttonVariants({ variant: "outline", size: "md" })}
-          >
-            <PhoneIcon className="size-4" />
-            {t.checkoutContactOrder}
-          </a>
-        </div>
-      </section>
-    );
+    return <CheckoutSuccessScreen order={createdOrder} locale={locale} />;
   }
 
   if (!cartId || lines.length === 0) {
@@ -412,6 +377,53 @@ export function CheckoutFlow() {
         </aside>
       </div>
     </>
+  );
+}
+
+function CheckoutSuccessScreen({ order, locale }: { order: CheckoutOrder; locale: string }) {
+  const { t } = useI18n();
+
+  // Success replaces the checkout form as a full-screen takeover — the
+  // breadcrumb/header above it in `page.tsx` and the shared site chrome are
+  // still in the DOM, so the document itself must stop scrolling too.
+  useEffect(() => {
+    const { style } = document.documentElement;
+    const previousOverflow = style.overflow;
+    style.overflow = "hidden";
+    return () => {
+      style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-6 text-center">
+      <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#EAF7EF] text-stock">
+        <CheckIcon className="size-6" />
+      </span>
+      <p className="mb-2 text-[11px] font-black tracking-[1.2px] text-stock uppercase">
+        {t.checkoutSuccessEyebrow}
+      </p>
+      <h2 className="mb-3 text-2xl font-black md:text-3xl">{t.checkoutSuccessTitle}</h2>
+      <p className="mx-auto mb-6 max-w-lg text-[13.5px] leading-6 text-ink-muted">
+        {t.checkoutSuccessDesc}
+      </p>
+      <div className="mx-auto mb-7 max-w-sm border-y border-line py-4">
+        <span className="block text-xs text-ink-muted">{t.checkoutOrderCode}</span>
+        <strong className="mt-1 block text-xl tracking-[1px]">{order.code}</strong>
+        <span className="mt-2 block text-lg font-black text-accent tabular-nums">
+          {formatPrice(order.total)}
+        </span>
+      </div>
+      <p className="mx-auto mb-8 max-w-md text-xs leading-5 font-semibold text-[#9B6808]">
+        {t.checkoutSaveOrderCode}
+      </p>
+      <Link
+        href={`/${locale}`}
+        className="text-[13.5px] font-bold text-ink-body underline decoration-1 underline-offset-4 transition-colors hover:text-accent"
+      >
+        {t.checkoutBackToHome}
+      </Link>
+    </div>
   );
 }
 

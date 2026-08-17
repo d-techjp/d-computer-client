@@ -132,6 +132,7 @@ const ja = {
   checkoutSuccessDesc: "ご注文を受け付けました。内容を確認後、担当者よりご連絡いたします。",
   checkoutOrderCode: "注文番号",
   checkoutSaveOrderCode: "ゲスト注文の確認に必要なため、この注文番号を保存してください。",
+  checkoutBackToHome: "トップページに戻る",
   menu: "メニュー",
   menuClose: "メニューを閉じる",
   listTitle: "製品一覧",

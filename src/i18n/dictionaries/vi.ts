@@ -134,6 +134,7 @@ const vi: typeof ja = {
   checkoutSuccessDesc: "Đơn hàng đã được ghi nhận. Cửa hàng sẽ liên hệ để xác nhận thông tin.",
   checkoutOrderCode: "Mã đơn hàng",
   checkoutSaveOrderCode: "Hãy lưu lại mã này để tra cứu đơn hàng khi mua không cần tài khoản.",
+  checkoutBackToHome: "Quay lại trang chủ",
   menu: "Menu",
   menuClose: "Đóng menu",
   listTitle: "Danh sách sản phẩm",
