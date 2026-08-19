@@ -27,8 +27,6 @@ type CartState = {
   requestStatus: CartRequestStatus;
   error: string | null;
   lastMutation: CartMutationResult["result"] | null;
-  /** Quantity acknowledged locally while an add request is still in flight. */
-  pendingItemCount: number;
 };
 
 type CartActions = {
@@ -58,7 +56,6 @@ const INITIAL_STATE: CartState = {
   requestStatus: "idle",
   error: null,
   lastMutation: null,
-  pendingItemCount: 0,
 };
 
 const EMPTY_ITEMS: CartItem[] = [];
@@ -79,7 +76,11 @@ export const useCartStore = create<CartStore>()(
 
         try {
           const cart = await createPromise;
-          set({ cartId: cart.id, cart, requestStatus: "idle" });
+          set((state) => ({
+            cartId: cart.id,
+            cart: state.cart?.id === "optimistic-cart" ? state.cart : cart,
+            requestStatus: "idle",
+          }));
           return cart.id;
         } catch (cause) {
           set({ requestStatus: "idle", error: toApiError(cause).message });
@@ -126,19 +127,18 @@ export const useCartStore = create<CartStore>()(
         return get().addVariant(product, variant, quantity);
       },
 
-      addVariant: async (_product, variant, quantity = 1) => {
+      addVariant: async (product, variant, quantity = 1) => {
         const requestedQuantity = Math.min(99, quantity);
-        // The backend remains authoritative, but the badge should acknowledge
-        // the tap immediately — especially when creating a cart takes a round trip.
+        const previousCart = get().cart;
         set((state) => ({
-          pendingItemCount: state.pendingItemCount + requestedQuantity,
+          cart: optimisticAdd(state.cart, product, variant, requestedQuantity),
           requestStatus: "mutating",
           error: null,
           lastMutation: null,
         }));
         const cartId = await get().ensureCart();
         if (!cartId) {
-          set((state) => ({ pendingItemCount: Math.max(0, state.pendingItemCount - requestedQuantity) }));
+          set({ cart: previousCart });
           return null;
         }
 
@@ -146,15 +146,14 @@ export const useCartStore = create<CartStore>()(
 
         try {
           const mutation = await addCartItem(cartId, variant.id, requestedQuantity);
-          set((state) => ({
+          set({
             cart: mutation.cart,
-            pendingItemCount: Math.max(0, state.pendingItemCount - requestedQuantity),
             requestStatus: "idle",
             lastMutation: mutation.result,
-          }));
+          });
           return mutation;
         } catch (cause) {
-          set((state) => ({ pendingItemCount: Math.max(0, state.pendingItemCount - requestedQuantity) }));
+          set({ cart: previousCart });
           await recoverMutationFailure(cause, cartId, set);
           return null;
         }
@@ -266,6 +265,65 @@ export const useCartStore = create<CartStore>()(
   ),
 );
 
+function optimisticAdd(
+  cart: Cart | null,
+  product: Product,
+  variant: ProductVariant,
+  quantity: number,
+): Cart {
+  const existing = cart?.items.find((item) => item.variantId === variant.id);
+  if (cart && existing) {
+    const nextQuantity = Math.min(99, existing.quantity + quantity);
+    const delta = nextQuantity - existing.quantity;
+    return {
+      ...cart,
+      itemCount: cart.itemCount + delta,
+      subtotal: cart.subtotal + variant.price * delta,
+      items: cart.items.map((item) =>
+        item.id === existing.id
+          ? { ...item, quantity: nextQuantity, lineTotal: item.unitPrice * nextQuantity }
+          : item,
+      ),
+    };
+  }
+
+  const item: CartItem = {
+    id: `optimistic-${variant.id}`,
+    variantId: variant.id,
+    productId: product.id,
+    slug: product.slug,
+    sku: variant.sku,
+    productName: product.name,
+    variantName: variant.name,
+    image: variant.thumbnail ?? product.thumbnail,
+    unitPrice: variant.price,
+    compareAtPrice: variant.compareAtPrice,
+    priceChanged: false,
+    quantity,
+    lineTotal: variant.price * quantity,
+    availableStock: variant.trackInventory ? variant.stock : null,
+    isAvailable: true,
+    issues: [],
+  };
+
+  return cart
+    ? {
+        ...cart,
+        itemCount: cart.itemCount + quantity,
+        subtotal: cart.subtotal + item.lineTotal,
+        items: [...cart.items, item],
+      }
+    : {
+        id: "optimistic-cart",
+        status: "active",
+        itemCount: quantity,
+        subtotal: item.lineTotal,
+        hasBlockingIssues: false,
+        items: [item],
+        updatedAt: new Date().toISOString(),
+      };
+}
+
 async function recoverMutationFailure(
   cause: unknown,
   cartId: string,
@@ -300,8 +358,7 @@ async function recoverMutationFailure(
 export const useCart = () => useCartStore((state) => state.cart);
 export const useCartId = () => useCartStore((state) => state.cartId);
 export const useCartLines = () => useCartStore((state) => state.cart?.items ?? EMPTY_ITEMS);
-export const useCartCount = () =>
-  useCartStore((state) => (state.cart?.itemCount ?? 0) + state.pendingItemCount);
+export const useCartCount = () => useCartStore((state) => state.cart?.itemCount ?? 0);
 export const useCartSubtotal = () => useCartStore((state) => state.cart?.subtotal ?? 0);
 export const useCartHasBlockingIssues = () =>
   useCartStore((state) => state.cart?.hasBlockingIssues ?? false);

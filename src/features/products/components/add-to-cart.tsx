@@ -23,9 +23,19 @@ export function AddToCart({ product, disabled = false }: { product: Product; dis
   const cartBusy = useCartBusy();
   const showToast = useUiStore((state) => state.showToast);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     showToast(t.cartAddedToast.replace("{product}", product.name));
-    void add(product, quantity);
+    const mutation = await add(product, quantity);
+    if (!mutation) {
+      showToast(t.cartAddFailed, "error");
+      return;
+    }
+    if (mutation.result.status !== "added") {
+      const message = mutation.result.issue
+        ? t.cartIssueLabels[mutation.result.issue]
+        : t.cartMutationAdjusted;
+      showToast(message, mutation.result.status === "rejected" ? "error" : "warning");
+    }
   };
 
   return (
@@ -38,7 +48,7 @@ export function AddToCart({ product, disabled = false }: { product: Product; dis
         disabled={cartBusy}
         labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}
       />
-      <Button onClick={handleAdd} disabled={disabled || cartBusy} className="flex-1">
+      <Button onClick={() => void handleAdd()} disabled={disabled || cartBusy} className="flex-1">
         {disabled ? t.badgeOutOfStock : t.detailAddToCart}
       </Button>
     </div>

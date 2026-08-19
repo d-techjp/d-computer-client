@@ -158,11 +158,6 @@ export function Hero() {
           </div>
           <span className="gaming-monitor__stand" />
         </div>
-        <div className="gaming-keyboard max-lg:hidden">
-          {Array.from({ length: 10 }, (_, index) => (
-            <span key={index} />
-          ))}
-        </div>
         <div className="gaming-pc">
           <Image
             src="/images/pc1.png"

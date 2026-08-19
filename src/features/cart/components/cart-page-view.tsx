@@ -12,12 +12,12 @@ import {
   useCartCount,
   useCartError,
   useCartHasBlockingIssues,
-  useCartLastMutation,
   useCartLines,
   useCartLoading,
   useCartSubtotal,
 } from "@/features/cart/store/cart.store";
 import { useCartHydrated } from "@/features/cart/store/use-cart-hydrated";
+import { useUiStore } from "@/features/layout/store/ui.store";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
@@ -34,16 +34,21 @@ export function CartPageView() {
   const loading = useCartLoading();
   const error = useCartError();
   const hasBlockingIssues = useCartHasBlockingIssues();
-  const lastMutation = useCartLastMutation();
   const { increment, decrement, remove, refresh } = useCartActions();
-  const mutationMessage =
-    lastMutation && lastMutation.status !== "added"
-      ? locale === "vi"
-        ? lastMutation.message
-        : lastMutation.issue
-          ? t.cartIssueLabels[lastMutation.issue]
-          : t.cartMutationAdjusted
-      : null;
+  const showToast = useUiStore((state) => state.showToast);
+  const notifyQuantityMutation = async (mutate: () => ReturnType<typeof increment>) => {
+    const mutation = await mutate();
+    if (!mutation) {
+      showToast(t.cartQuantityUpdateFailed, "error");
+      return;
+    }
+    if (mutation.result.status === "added") return;
+
+    const message = mutation.result.issue
+      ? t.cartIssueLabels[mutation.result.issue]
+      : t.cartMutationAdjusted;
+    showToast(message, mutation.result.status === "rejected" ? "error" : "warning");
+  };
 
   if (!hydrated || (loading && lines.length === 0)) {
     return <CartSkeleton />;
@@ -77,14 +82,6 @@ export function CartPageView() {
   return (
     <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 xl:gap-14">
       <section aria-labelledby="checkout-items-title" className="min-w-0">
-        {error || mutationMessage ? (
-          <p
-            role={error ? "alert" : "status"}
-            className="mb-4 border-l-2 border-[#D39A24] bg-[#FFF8E8] px-3.5 py-3 text-[12.5px] leading-5"
-          >
-            {error ?? mutationMessage}
-          </p>
-        ) : null}
         <div className="mb-3 flex items-end justify-between gap-4">
           <h2 id="checkout-items-title" className="text-lg font-black md:text-xl">
             {t.checkoutItemsTitle}
@@ -161,8 +158,8 @@ export function CartPageView() {
                   size="sm"
                   className="w-fit"
                   value={line.quantity}
-                  onIncrement={() => void increment(line.id)}
-                  onDecrement={() => void decrement(line.id)}
+                  onIncrement={() => void notifyQuantityMutation(() => increment(line.id))}
+                  onDecrement={() => void notifyQuantityMutation(() => decrement(line.id))}
                   max={99}
                   disabled={busy || !line.isAvailable}
                   labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}

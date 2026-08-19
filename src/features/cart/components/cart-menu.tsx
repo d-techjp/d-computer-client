@@ -16,8 +16,6 @@ import {
   useCartActions,
   useCartBusy,
   useCartCount,
-  useCartError,
-  useCartLastMutation,
   useCartLines,
   useCartLoading,
   useCartSubtotal,
@@ -43,22 +41,26 @@ export function CartMenu() {
   const subtotal = useCartSubtotal();
   const busy = useCartBusy();
   const loading = useCartLoading();
-  const error = useCartError();
-  const lastMutation = useCartLastMutation();
   const { increment, decrement, remove } = useCartActions();
 
   const open = useIsPanelOpen("cart");
   const toggle = useUiStore((state) => state.toggle);
   const close = useUiStore((state) => state.close);
+  const showToast = useUiStore((state) => state.showToast);
   const ref = useDismissable<HTMLDivElement>(open, close);
-  const mutationMessage =
-    lastMutation && lastMutation.status !== "added"
-      ? locale === "vi"
-        ? lastMutation.message
-        : lastMutation.issue
-          ? t.cartIssueLabels[lastMutation.issue]
-          : t.cartMutationAdjusted
-      : null;
+  const notifyQuantityMutation = async (mutate: () => ReturnType<typeof increment>) => {
+    const mutation = await mutate();
+    if (!mutation) {
+      showToast(t.cartQuantityUpdateFailed, "error");
+      return;
+    }
+    if (mutation.result.status === "added") return;
+
+    const message = mutation.result.issue
+      ? t.cartIssueLabels[mutation.result.issue]
+      : t.cartMutationAdjusted;
+    showToast(message, mutation.result.status === "rejected" ? "error" : "warning");
+  };
 
   // The sheet covers the viewport on mobile — letting the page scroll behind
   // it is the classic bug where dismissing it leaves you somewhere else. A
@@ -139,15 +141,6 @@ export function CartMenu() {
               </button>
             </header>
 
-            {error || mutationMessage ? (
-              <p
-                role={error ? "alert" : "status"}
-                className="border-b border-line-faint bg-[#FFF8E8] px-5 py-2.5 text-xs leading-5 text-ink-body"
-              >
-                {error ?? mutationMessage}
-              </p>
-            ) : null}
-
             {loading && lines.length === 0 ? (
               <p className="px-5 py-10 text-center text-[13px] text-ink-subtle">
                 {t.cartLoading}
@@ -212,8 +205,8 @@ export function CartMenu() {
                         <QuantityStepper
                           size="sm"
                           value={line.quantity}
-                          onIncrement={() => void increment(line.id)}
-                          onDecrement={() => void decrement(line.id)}
+                          onIncrement={() => void notifyQuantityMutation(() => increment(line.id))}
+                          onDecrement={() => void notifyQuantityMutation(() => decrement(line.id))}
                           max={99}
                           disabled={busy || !line.isAvailable}
                           labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}

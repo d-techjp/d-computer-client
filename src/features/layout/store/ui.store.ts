@@ -15,7 +15,7 @@ import { create } from "zustand";
  */
 export type Panel = "cart" | "language" | "search" | "nav" | null;
 
-type Toast = { id: number; message: string } | null;
+type Toast = { id: number; message: string; tone: "success" | "warning" | "error" } | null;
 
 type UiStore = {
   openPanel: Panel;
@@ -23,7 +23,7 @@ type UiStore = {
   toggle: (panel: Exclude<Panel, null>) => void;
   open: (panel: Exclude<Panel, null>) => void;
   close: () => void;
-  showToast: (message: string) => void;
+  showToast: (message: string, tone?: Exclude<Toast, null>["tone"]) => void;
   dismissToast: () => void;
 };
 
@@ -33,7 +33,7 @@ export const useUiStore = create<UiStore>()((set) => ({
   toggle: (panel) => set((state) => ({ openPanel: state.openPanel === panel ? null : panel })),
   open: (panel) => set({ openPanel: panel }),
   close: () => set({ openPanel: null }),
-  showToast: (message) => set({ toast: { id: Date.now(), message } }),
+  showToast: (message, tone = "success") => set({ toast: { id: Date.now(), message, tone } }),
   dismissToast: () => set({ toast: null }),
 }));
 

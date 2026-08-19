@@ -61,6 +61,8 @@ const ja = {
   cartDecrease: "数量を減らす",
   cartLoading: "カートを読み込んでいます...",
   cartAddedToast: "{product}をカートに追加しました",
+  cartAddFailed: "カートに追加できませんでした。もう一度お試しください。",
+  cartQuantityUpdateFailed: "数量を更新できませんでした。もう一度お試しください。",
   cartLoadError: "カートを読み込めませんでした",
   cartRetry: "再試行",
   cartMutationAdjusted: "在庫数に合わせて数量を調整しました。",

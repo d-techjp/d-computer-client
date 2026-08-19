@@ -63,6 +63,8 @@ const vi: typeof ja = {
   cartDecrease: "Giảm số lượng",
   cartLoading: "Đang tải giỏ hàng...",
   cartAddedToast: "Đã thêm {product} vào giỏ hàng",
+  cartAddFailed: "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
+  cartQuantityUpdateFailed: "Không thể cập nhật số lượng. Vui lòng thử lại.",
   cartLoadError: "Không thể tải giỏ hàng",
   cartRetry: "Thử lại",
   cartMutationAdjusted: "Số lượng đã được điều chỉnh theo tồn kho hiện tại.",

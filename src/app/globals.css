@@ -696,30 +696,6 @@
   transform: skewX(-10deg);
 }
 
-.gaming-keyboard {
-  position: absolute;
-  bottom: 7%;
-  left: 0;
-  z-index: 5;
-  display: grid;
-  width: 56%;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  padding: 8px;
-  border: 2px solid #8f7423;
-  background: #27231b;
-  box-shadow: 0 12px 24px rgba(52, 39, 14, 0.26), 0 0 18px rgba(212, 175, 55, 0.16);
-  transform: perspective(330px) rotateX(52deg) rotateZ(-4deg);
-  animation: gaming-float-keyboard 5.3s ease-in-out -1.4s infinite;
-}
-
-.gaming-keyboard span {
-  display: block;
-  height: clamp(7px, 1.1vw, 11px);
-  background: #d4af37;
-  box-shadow: 0 0 6px rgba(255, 215, 0, 0.24);
-}
-
 .gaming-pc {
   position: absolute;
   right: 0;
@@ -788,11 +764,6 @@
 @keyframes gaming-float-monitor {
   0%, 100% { transform: perspective(720px) rotateY(10deg) rotateX(2deg) translateY(0); }
   48% { transform: perspective(720px) rotateY(10deg) rotateX(2deg) translateY(-4px); }
-}
-
-@keyframes gaming-float-keyboard {
-  0%, 100% { transform: perspective(330px) rotateX(52deg) rotateZ(-4deg) translateY(0); }
-  50% { transform: perspective(330px) rotateX(52deg) rotateZ(-4deg) translateY(-4px); }
 }
 
 @keyframes gaming-particle {

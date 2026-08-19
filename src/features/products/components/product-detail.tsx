@@ -88,10 +88,20 @@ export function ProductDetail({
   const purchaseDisabled = notForSale || outOfStock || !selectedVariant;
   const showVariantPicker = product.hasVariants || product.variants.length > 1;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!selectedVariant) return;
     showToast(t.cartAddedToast.replace("{product}", product.name));
-    void addVariant(product, selectedVariant, quantity);
+    const mutation = await addVariant(product, selectedVariant, quantity);
+    if (!mutation) {
+      showToast(t.cartAddFailed, "error");
+      return;
+    }
+    if (mutation.result.status !== "added") {
+      const message = mutation.result.issue
+        ? t.cartIssueLabels[mutation.result.issue]
+        : t.cartMutationAdjusted;
+      showToast(message, mutation.result.status === "rejected" ? "error" : "warning");
+    }
   };
   const selectImage = (image: string) => {
     setSelectedImageOverride({ variantId: selectedVariant?.id ?? "", image });
@@ -264,7 +274,7 @@ export function ProductDetail({
               labels={{ increase: t.cartIncrease, decrease: t.cartDecrease }}
             />
             <Button
-              onClick={handleAdd}
+              onClick={() => void handleAdd()}
               disabled={purchaseDisabled || cartBusy}
               className="flex-1"
             >
