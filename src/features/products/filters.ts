@@ -10,9 +10,11 @@
  * importable from a Server Component and a Client Component alike.
  *
  * Unlike the old mock catalogue, the backend only accepts *one* category and
- * *one* brand per request (`categoryId`, `brandId` — not arrays), so each
- * filter group is single-select: picking a second value replaces the first
- * rather than adding to it.
+ * *one* brand per request (`category`, `brand` — not arrays), so each filter
+ * group is single-select: picking a second value replaces the first rather
+ * than adding to it. Both are carried as *slugs*, not ids — the value in the
+ * URL is the same human-readable string the backend resolves server-side,
+ * which is what keeps `/products?category=laptop` readable and indexable.
  */
 
 export const PRICE_BUCKETS = ["entry", "mid", "high", "flagship"] as const;
@@ -49,8 +51,8 @@ export function sortParams(sort: SortOption): { sortBy: string; sortOrder: "ASC"
 export type ProductQuery = {
   /** Free-text term, shared with the header search endpoint. */
   q: string;
-  categoryId: string;
-  brandId: string;
+  category: string;
+  brand: string;
   priceBucket: PriceBucket | "";
   inStock: boolean;
   sort: SortOption;
@@ -59,8 +61,8 @@ export type ProductQuery = {
 
 export const EMPTY_QUERY: ProductQuery = {
   q: "",
-  categoryId: "",
-  brandId: "",
+  category: "",
+  brand: "",
   priceBucket: "",
   inStock: false,
   sort: DEFAULT_SORT,
@@ -100,8 +102,8 @@ export function parseProductQuery(params: RawSearchParams): ProductQuery {
 
   return {
     q,
-    categoryId: readParam(params, "category") ?? "",
-    brandId: readParam(params, "brand") ?? "",
+    category: readParam(params, "category") ?? "",
+    brand: readParam(params, "brand") ?? "",
     priceBucket,
     inStock: readParam(params, "inStock") === "1",
     sort,
@@ -113,8 +115,8 @@ export function toSearchParams(query: ProductQuery): URLSearchParams {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
-  if (query.categoryId) params.set("category", query.categoryId);
-  if (query.brandId) params.set("brand", query.brandId);
+  if (query.category) params.set("category", query.category);
+  if (query.brand) params.set("brand", query.brand);
   if (query.priceBucket) params.set("price", query.priceBucket);
   if (query.inStock) params.set("inStock", "1");
   // The default sort is implied by its absence, keeping the common URL clean.
@@ -134,21 +136,21 @@ export function toQueryString(query: ProductQuery): string {
  * A deep link into the listing pre-filtered to one category — what every
  * category entry point outside `/products` (home rail, promo cards) points at.
  * Built through `toQueryString` so those links can never drift from the param
- * names the page parses.
+ * names the page parses. Takes the category's *slug*, not its id.
  */
-export function categoryHref(locale: string, categoryId: string): string {
-  return `/${locale}/products${toQueryString({ ...EMPTY_QUERY, categoryId })}`;
+export function categoryHref(locale: string, categorySlug: string): string {
+  return `/${locale}/products${toQueryString({ ...EMPTY_QUERY, category: categorySlug })}`;
 }
 
 /* ------------------------------- mutation -------------------------------- */
 
 /** Selecting the same value again clears the filter — that is how a single-select group toggles off. */
-export function setCategory(query: ProductQuery, categoryId: string): ProductQuery {
-  return { ...query, categoryId: query.categoryId === categoryId ? "" : categoryId, page: 1 };
+export function setCategory(query: ProductQuery, categorySlug: string): ProductQuery {
+  return { ...query, category: query.category === categorySlug ? "" : categorySlug, page: 1 };
 }
 
-export function setBrand(query: ProductQuery, brandId: string): ProductQuery {
-  return { ...query, brandId: query.brandId === brandId ? "" : brandId, page: 1 };
+export function setBrand(query: ProductQuery, brandSlug: string): ProductQuery {
+  return { ...query, brand: query.brand === brandSlug ? "" : brandSlug, page: 1 };
 }
 
 export function setPriceBucket(query: ProductQuery, bucket: PriceBucket): ProductQuery {
@@ -173,8 +175,8 @@ export function withPage(query: ProductQuery, page: number): ProductQuery {
 
 export function activeFilterCount(query: ProductQuery): number {
   return (
-    (query.categoryId ? 1 : 0) +
-    (query.brandId ? 1 : 0) +
+    (query.category ? 1 : 0) +
+    (query.brand ? 1 : 0) +
     (query.priceBucket ? 1 : 0) +
     (query.inStock ? 1 : 0)
   );
@@ -188,8 +190,8 @@ export function activeFilterEntries(
 ): Array<{ key: FilterKey; value: string }> {
   const entries: Array<{ key: FilterKey; value: string }> = [];
 
-  if (query.categoryId) entries.push({ key: "category", value: query.categoryId });
-  if (query.brandId) entries.push({ key: "brand", value: query.brandId });
+  if (query.category) entries.push({ key: "category", value: query.category });
+  if (query.brand) entries.push({ key: "brand", value: query.brand });
   if (query.priceBucket) entries.push({ key: "price", value: query.priceBucket });
   if (query.inStock) entries.push({ key: "inStock", value: "1" });
 

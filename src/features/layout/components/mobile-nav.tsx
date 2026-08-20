@@ -151,7 +151,7 @@ function CategoryBranch({
     node.children.length === 0 ? (
       <Link
         key={node.id}
-        href={categoryHref(locale, node.id)}
+        href={categoryHref(locale, node.slug)}
         onClick={onNavigate}
         className="truncate rounded-lg px-3 py-2.5 text-[13.5px] text-ink-body transition-colors hover:bg-mist hover:text-accent"
       >
@@ -171,7 +171,7 @@ function CategoryBranch({
             readable — indentation alone stops reading as hierarchy. */}
         <div className="ml-3 flex flex-col border-l border-line-soft pb-1 pl-2">
           <Link
-            href={categoryHref(locale, node.id)}
+            href={categoryHref(locale, node.slug)}
             onClick={onNavigate}
             className="rounded-lg px-3 py-2 text-[12.5px] font-bold text-accent transition-colors hover:bg-mist"
           >

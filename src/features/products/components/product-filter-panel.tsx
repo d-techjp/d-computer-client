@@ -35,7 +35,7 @@ export function ProductFilterPanel({
 }: {
   query: ProductQuery;
   brands: Brand[];
-  onSetBrand: (brandId: string) => void;
+  onSetBrand: (brandSlug: string) => void;
   onSetPrice: (bucket: PriceBucket) => void;
   onToggleInStock: () => void;
   onClear: () => void;
@@ -64,7 +64,7 @@ export function ProductFilterPanel({
 
       {brands.length > 0 ? (
         <FilterGroup title={t.filterGroups.brand} first={!showHeading}>
-          <BrandFilter brands={brands} selectedId={query.brandId} onSelect={onSetBrand} />
+          <BrandFilter brands={brands} selectedSlug={query.brand} onSelect={onSetBrand} />
         </FilterGroup>
       ) : null}
 
@@ -92,12 +92,12 @@ export function ProductFilterPanel({
 
 function BrandFilter({
   brands,
-  selectedId,
+  selectedSlug,
   onSelect,
 }: {
   brands: Brand[];
-  selectedId: string;
-  onSelect: (brandId: string) => void;
+  selectedSlug: string;
+  onSelect: (brandSlug: string) => void;
 }) {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
@@ -116,11 +116,11 @@ function BrandFilter({
     if (normalizedSearch || expanded || brands.length <= BRAND_PREVIEW_COUNT) return filteredBrands;
 
     const preview = brands.slice(0, BRAND_PREVIEW_COUNT);
-    const selected = brands.find((brand) => brand.id === selectedId);
+    const selected = brands.find((brand) => brand.slug === selectedSlug);
     return selected && !preview.some((brand) => brand.id === selected.id)
       ? [...preview, selected]
       : preview;
-  }, [brands, expanded, filteredBrands, normalizedSearch, selectedId]);
+  }, [brands, expanded, filteredBrands, normalizedSearch, selectedSlug]);
 
   const canExpand = brands.length > BRAND_PREVIEW_COUNT;
   const useScrollableList = expanded || normalizedSearch.length > 0;
@@ -152,8 +152,8 @@ function BrandFilter({
             <FilterOption
               key={brand.id}
               label={brand.name}
-              checked={selectedId === brand.id}
-              onChange={() => onSelect(brand.id)}
+              checked={selectedSlug === brand.slug}
+              onChange={() => onSelect(brand.slug)}
             />
           ))
         ) : (

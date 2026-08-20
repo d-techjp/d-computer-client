@@ -102,7 +102,7 @@ export function CategoryMenu({
               return (
                 <li key={category.id}>
                   <Link
-                    href={categoryHref(locale, category.id)}
+                    href={categoryHref(locale, category.slug)}
                     onMouseEnter={() => setActiveId(category.id)}
                     onFocus={() => setActiveId(category.id)}
                     className={cn(
@@ -175,7 +175,7 @@ function MegaPanel({ category }: { category: CategoryNode }) {
         {loose.length > 0 ? (
           <MegaColumn
             heading={category.name}
-            headingHref={categoryHref(locale, category.id)}
+            headingHref={categoryHref(locale, category.slug)}
             items={loose}
           />
         ) : null}
@@ -184,14 +184,14 @@ function MegaPanel({ category }: { category: CategoryNode }) {
           <MegaColumn
             key={group.id}
             heading={group.name}
-            headingHref={categoryHref(locale, group.id)}
+            headingHref={categoryHref(locale, group.slug)}
             items={group.children}
           />
         ))}
       </div>
 
       <Link
-        href={categoryHref(locale, category.id)}
+        href={categoryHref(locale, category.slug)}
         className="mt-5 inline-block border-t border-line-soft pt-4 text-[12.5px] font-bold text-accent underline-offset-4 hover:underline"
       >
         {t.categoryMenuViewAll.replace("{name}", category.name)} <span aria-hidden>→</span>
@@ -238,7 +238,7 @@ function MegaList({ items }: { items: CategoryNode[] }) {
       {items.map((item) => (
         <li key={item.id}>
           <Link
-            href={categoryHref(locale, item.id)}
+            href={categoryHref(locale, item.slug)}
             className="block truncate rounded py-1 text-[13px] text-ink-body transition-colors hover:text-accent"
           >
             {item.name}

@@ -90,11 +90,11 @@ function TikTokCard({
   const canPlayInline = videoId !== null;
 
   return (
-    <article className="w-[calc((100%-0.75rem)/2)] flex-none snap-start overflow-hidden rounded-xl border border-line bg-white shadow-card sm:w-full sm:max-w-[245px]">
+    <article className="flex w-[calc((100%-0.75rem)/2)] flex-none snap-start flex-col overflow-hidden rounded-xl border border-line bg-white shadow-card sm:w-full sm:max-w-[245px]">
       <div className="relative aspect-9/16 overflow-hidden bg-ink-strong">
         {playing && videoId ? (
           <iframe
-            src={`https://www.tiktok.com/player/v1/${videoId}`}
+            src={`https://www.tiktok.com/player/v1/${videoId}?autoplay=1`}
             title={t.tiktokVideoTitle}
             className="absolute inset-0 size-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -124,14 +124,14 @@ function TikTokCard({
           </button>
         )}
       </div>
-      <p className="px-3 pt-3 text-[11.5px] leading-4 text-ink-muted">
+      <p className="line-clamp-3 h-15 px-3 pt-3 text-[11.5px] leading-4 text-ink-muted">
         {video.description ?? t.tiktokVideoDescription}
       </p>
       <a
         href={video.videoUrl}
         target="_blank"
         rel="noreferrer"
-        className="mt-2 flex items-center justify-between px-3 pb-3 text-[11.5px] font-bold text-ink-body transition-colors hover:text-accent"
+        className="mt-auto flex items-center justify-between px-3 pb-3 text-[11.5px] font-bold text-ink-body transition-colors hover:text-accent"
       >
         <span>{t.tiktokWatchOnTikTok}</span>
         <span aria-hidden>↗</span>

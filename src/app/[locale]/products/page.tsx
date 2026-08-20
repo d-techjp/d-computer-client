@@ -69,7 +69,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
     listBrands(),
   ]);
 
-  const selectedCategory = categories.find((category) => category.id === query.categoryId) ?? null;
+  const selectedCategory = categories.find((category) => category.slug === query.category) ?? null;
   const categoryRail = categories
     .filter((category) => category.parentId === (selectedCategory?.id ?? null))
     .sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name));

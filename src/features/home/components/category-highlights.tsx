@@ -35,7 +35,7 @@ export function CategoryHighlights({ categories }: { categories: CategoryNode[] 
 
   const cards: Card[] = categories.slice(0, MAX_CARDS).map((category, index) => ({
     key: category.id,
-    href: categoryHref(locale, category.id),
+    href: categoryHref(locale, category.slug),
     title: category.name,
     sub:
       category.description ||

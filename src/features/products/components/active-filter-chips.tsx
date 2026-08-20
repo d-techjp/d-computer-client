@@ -27,8 +27,8 @@ export function ActiveFilterChips({
   query: ProductQuery;
   categories: Category[];
   brands: Brand[];
-  onSetCategory: (categoryId: string) => void;
-  onSetBrand: (brandId: string) => void;
+  onSetCategory: (categorySlug: string) => void;
+  onSetBrand: (brandSlug: string) => void;
   onSetPrice: (bucket: PriceBucket) => void;
   onToggleInStock: () => void;
   onClear: () => void;
@@ -45,9 +45,9 @@ export function ActiveFilterChips({
       {entries.map(({ key, value }) => {
         const label =
           key === "category"
-            ? (categories.find((category) => category.id === value)?.name ?? value)
+            ? (categories.find((category) => category.slug === value)?.name ?? value)
             : key === "brand"
-              ? (brands.find((brand) => brand.id === value)?.name ?? value)
+              ? (brands.find((brand) => brand.slug === value)?.name ?? value)
               : key === "price"
                 ? priceBucketLabel(value as PriceBucket, t)
                 : t.filterInStock;

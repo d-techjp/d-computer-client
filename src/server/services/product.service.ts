@@ -59,9 +59,9 @@ export async function listProductPage(query: ProductQuery): Promise<ProductListi
 
   const data = await backendFetch<unknown>("/products", {
     search: query.q || undefined,
-    categoryId: query.categoryId || undefined,
-    includeSubCategories: query.categoryId ? true : undefined,
-    brandId: query.brandId || undefined,
+    category: query.category || undefined,
+    includeSubCategories: query.category ? true : undefined,
+    brand: query.brand || undefined,
     minPrice: bounds?.min,
     maxPrice: bounds?.max ?? undefined,
     inStock: query.inStock || undefined,

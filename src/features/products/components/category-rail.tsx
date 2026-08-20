@@ -28,7 +28,7 @@ export function CategoryRail({
         {categories.map((category) => (
           <Link
             key={category.id}
-            href={categoryHref(locale, category.id)}
+            href={categoryHref(locale, category.slug)}
             className="group flex min-h-11 min-w-0 items-center justify-between gap-2 border border-line bg-surface px-3 py-2.5 text-[12px] font-bold transition-colors hover:border-line-strong hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex md:min-h-0 md:py-2"
           >
             <span className="line-clamp-2">{category.name}</span>

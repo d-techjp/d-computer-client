@@ -88,11 +88,11 @@ export function ProductBrowser({
   );
 
   const handleSetCategory = useCallback(
-    (categoryId: string) => apply(setCategory(optimisticQuery, categoryId)),
+    (categorySlug: string) => apply(setCategory(optimisticQuery, categorySlug)),
     [apply, optimisticQuery],
   );
   const handleSetBrand = useCallback(
-    (brandId: string) => apply(setBrand(optimisticQuery, brandId)),
+    (brandSlug: string) => apply(setBrand(optimisticQuery, brandSlug)),
     [apply, optimisticQuery],
   );
   const handleSetPrice = useCallback(
