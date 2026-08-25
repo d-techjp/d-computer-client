@@ -248,38 +248,6 @@ const vi: typeof ja = {
       sub: "Thay đổi linh kiện, thêm tùy chọn tự do",
     },
   ],
-  footerColumns: [
-    {
-      title: "Sản phẩm · Dịch vụ",
-      links: [
-        "Danh sách sản phẩm",
-        "PC theo yêu cầu",
-        "Danh sách linh kiện",
-        "Chương trình khuyến mãi",
-      ],
-    },
-    {
-      title: "Hướng dẫn",
-      links: [
-        "Phương thức thanh toán",
-        "Vận chuyển",
-        "Đổi trả",
-        "Câu hỏi thường gặp",
-      ],
-    },
-    {
-      title: "Hỗ trợ",
-      links: ["Liên hệ", "Bảo hành", "Thông tin hỗ trợ", "Tải driver"],
-    },
-    {
-      title: "Công ty",
-      links: [
-        "Giới thiệu công ty",
-        "Chính sách đặc thù",
-        "Chính sách bảo mật",
-      ],
-    },
-  ],
 };
 
 export default vi;

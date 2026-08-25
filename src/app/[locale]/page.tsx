@@ -11,6 +11,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { listArticles } from "@/server/services/article.service";
 import { listHomeCarousels } from "@/server/services/carousel.service";
 import { listTiktokVideos } from "@/server/services/tiktok-video.service";
+import { getSiteSettings } from "@/server/services/site-settings.service";
 
 // Stock, prices and featured flags come from the live backend — this page
 // must never be frozen into a static HTML file at build time.
@@ -33,11 +34,12 @@ export default async function HomePage({
   if (!isLocale(locale)) notFound();
 
   // Independent reads run concurrently instead of serialising into a waterfall.
-  const [t, articleListing, carousels, tiktokVideos] = await Promise.all([
+  const [t, articleListing, carousels, tiktokVideos, siteSettings] = await Promise.all([
     getDictionary(locale),
     listArticles({ limit: FEATURED_ARTICLES_LIMIT }),
     listHomeCarousels(),
     listTiktokVideos(),
+    getSiteSettings(),
   ]);
 
   return (
@@ -49,7 +51,15 @@ export default async function HomePage({
       ))}
       <CustomPcSection t={t} />
       <BlogSection articles={articleListing.articles} locale={locale} t={t} />
-      <TikTokSection t={t} videos={tiktokVideos} />
+      <TikTokSection
+        t={t}
+        videos={tiktokVideos}
+        profileUrl={
+          siteSettings.socialLinks.find(
+            (social) => /tiktok/i.test(social.name) || /tiktok\.com/i.test(social.url),
+          )?.url
+        }
+      />
     </>
   );
 }

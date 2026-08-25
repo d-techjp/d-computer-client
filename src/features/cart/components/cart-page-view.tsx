@@ -18,13 +18,12 @@ import {
 } from "@/features/cart/store/cart.store";
 import { useCartHydrated } from "@/features/cart/store/use-cart-hydrated";
 import { useUiStore } from "@/features/layout/store/ui.store";
+import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
 
-const CONTACT_PHONE = "08064732260";
-
-export function CartPageView() {
+export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
   const { locale, t } = useI18n();
   const hydrated = useCartHydrated();
   const lines = useCartLines();
@@ -215,7 +214,7 @@ export function CartPageView() {
             </Link>
           )}
           <a
-            href={`tel:${CONTACT_PHONE}`}
+            href={`tel:${phone.replace(/-/g, "")}`}
             className={cn(
               buttonVariants({ variant: "outline", size: "block" }),
               "min-h-12 px-2 text-center leading-5",
@@ -231,7 +230,7 @@ export function CartPageView() {
         ) : null}
 
         <p className="mt-4 text-center text-[11.5px] leading-5 text-ink-faint">
-          {t.checkoutContactHint.replace("{phone}", t.phone)}
+          {t.checkoutContactHint.replace("{phone}", phone)}
         </p>
       </aside>
     </div>

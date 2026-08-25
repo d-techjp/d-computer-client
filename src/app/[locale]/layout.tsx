@@ -15,6 +15,7 @@ import { LOCALES, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { I18nProvider } from "@/i18n/i18n-provider";
 import { listCategories } from "@/server/services/catalog.service";
+import { getSiteSettings } from "@/server/services/site-settings.service";
 
 import "../globals.css";
 
@@ -49,10 +50,10 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) return {};
 
-  const t = await getDictionary(locale);
+  const [t, siteSettings] = await Promise.all([getDictionary(locale), getSiteSettings()]);
 
   return {
-    title: { default: t.companyName, template: `%s | ${t.companyName}` },
+    title: { default: siteSettings.companyName, template: `%s | ${siteSettings.companyName}` },
     description: t.tagline,
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
     alternates: {
@@ -65,7 +66,7 @@ export async function generateMetadata({
       apple: [{ url: "/logo-d-tech.png", type: "image/png" }],
     },
     openGraph: {
-      title: t.companyName,
+      title: siteSettings.companyName,
       description: t.tagline,
       locale,
       type: "website",
@@ -87,7 +88,11 @@ export default async function LocaleLayout({
 
   // The header's category menu needs the catalogue tree on every page, so the
   // layout reads it once here rather than each page threading it through.
-  const [t, categories] = await Promise.all([getDictionary(locale), listCategories()]);
+  const [t, categories, siteSettings] = await Promise.all([
+    getDictionary(locale),
+    listCategories(),
+    getSiteSettings(),
+  ]);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -95,17 +100,22 @@ export default async function LocaleLayout({
         {/* The dictionary is serialised into the client tree exactly once. */}
         <I18nProvider value={{ locale, t }}>
           <SiteChromeGate>
-            <Topbar t={t} locale={locale} />
-            <SiteHeader t={t} locale={locale} categories={buildCategoryTree(categories)} />
+            <Topbar t={t} locale={locale} phone={siteSettings.phone} />
+            <SiteHeader
+              t={t}
+              locale={locale}
+              categories={buildCategoryTree(categories)}
+              siteSettings={siteSettings}
+            />
           </SiteChromeGate>
           <main>{children}</main>
           <SiteChromeGate>
-            <SiteFooter />
+            <SiteFooter siteSettings={siteSettings} />
             {/* The bottom bar is fixed, so the last of the footer would sit under
                 it forever without a matching run-off below `lg`. */}
             <div className="h-[calc(4.25rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden />
           </SiteChromeGate>
-          <SocialBubbles />
+          <SocialBubbles socialLinks={siteSettings.socialLinks} />
           <CartBar />
           <CartAddToast />
         </I18nProvider>

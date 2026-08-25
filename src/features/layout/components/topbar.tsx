@@ -10,7 +10,7 @@ import { LanguageSwitcher } from "./language-switcher";
  * Server Component. Only `<LanguageSwitcher>` — the one interactive piece —
  * ships JavaScript; the announcement strip and links are static HTML.
  */
-export function Topbar({ t, locale }: { t: Dictionary; locale: Locale }) {
+export function Topbar({ t, locale, phone }: { t: Dictionary; locale: Locale; phone: string }) {
   return (
     <div className="site-topbar border-b border-[#D4AF37]/30 bg-[#FFFDF8] text-[11.5px] text-[#666158]">
       <div className="shell flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5">
@@ -23,11 +23,11 @@ export function Topbar({ t, locale }: { t: Dictionary; locale: Locale }) {
         </div>
         <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 max-lg:w-full max-lg:justify-between">
           <a
-            href={`tel:${t.phone.replace(/-/g, "")}`}
+            href={`tel:${phone.replace(/-/g, "")}`}
             className="flex items-center gap-1.5 transition-colors hover:text-[#A98520] [&_svg]:text-[#D4AF37]"
           >
             <PhoneIcon />
-            {t.phone}
+            {phone}
           </a>
           <span className="flex items-center gap-[18px]">
             <Link

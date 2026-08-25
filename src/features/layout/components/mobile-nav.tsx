@@ -26,7 +26,7 @@ import { useIsPanelOpen, useUiStore } from "../store/ui.store";
  * Here the same categories are `<details>` disclosures instead — tap to expand,
  * tap the heading to browse the whole branch.
  */
-export function MobileNav({ categories }: { categories: CategoryNode[] }) {
+export function MobileNav({ categories, phone }: { categories: CategoryNode[]; phone: string }) {
   const { locale, t } = useI18n();
   const pathname = usePathname();
 
@@ -111,11 +111,11 @@ export function MobileNav({ categories }: { categories: CategoryNode[] }) {
               </button>
 
               <a
-                href={`tel:${t.phone.replace(/-/g, "")}`}
+                href={`tel:${phone.replace(/-/g, "")}`}
                 className="flex items-center gap-2 text-[13px] text-ink-muted transition-colors hover:text-accent"
               >
                 <PhoneIcon />
-                {t.phone}
+                {phone}
               </a>
             </div>
           </nav>

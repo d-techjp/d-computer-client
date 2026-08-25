@@ -3,34 +3,9 @@
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 
-type SocialBubble = {
-  href: string;
-  src: string;
-  label: string;
-  /** Brand colour behind the pulsing ring, as a CSS colour value. */
-  ringColor: string;
-};
+import type { SocialLink } from "@/features/layout/api/site-settings.schema";
 
-const SOCIAL_BUBBLES: SocialBubble[] = [
-  {
-    href: "https://www.facebook.com/nguyenviet.dung.92",
-    src: "/fb.png",
-    label: "Fanpage Facebook",
-    ringColor: "rgba(24,119,242,0.55)",
-  },
-  {
-    href: "https://www.tiktok.com/@dcomputer7?_r=1&_t=ZS-98octHc6xDp",
-    src: "/tiktok.png",
-    label: "TikTok Shop",
-    ringColor: "rgba(254,44,85,0.5)",
-  },
-  {
-    href: "https://beacons.ai/dcomputer",
-    src: "/beacons.png",
-    label: "Beacons – Link Bio",
-    ringColor: "rgba(120,53,15,0.5)",
-  },
-];
+const RING_COLORS = ["rgba(24,119,242,0.55)", "rgba(254,44,85,0.5)", "rgba(120,53,15,0.5)"];
 
 /** localStorage key remembering whether the user collapsed the bubble stack. */
 const STORAGE_KEY = "social-bubbles-visible";
@@ -69,20 +44,20 @@ function storeVisible(visible: boolean): void {
 }
 
 /**
- * Fixed vertical stack of social bubbles (Facebook / TikTok / Beacons), kept
- * small and edge-anchored so they never sit over primary content or the
+ * Fixed vertical stack of admin-managed social bubbles, kept small and
+ * edge-anchored so they never sit over primary content or the
  * mobile thumb-reach zone. Sits at z-40 — below the header/menu/cart overlays
  * (z-60/70/80) so it's correctly obscured whenever one of those is open.
  * A toggle button lets users collapse the stack if they find it distracting;
  * the choice is remembered across visits.
  */
-export function SocialBubbles() {
+export function SocialBubbles({ socialLinks }: { socialLinks: SocialLink[] }) {
   const pathname = usePathname();
   const visible = useSyncExternalStore(subscribe, isVisible, isVisibleOnServer);
 
   // Cart and checkout place prices and order controls at the viewport edge on
   // narrow screens, so fixed social actions would overlap transaction content.
-  if (/\/(?:cart|checkout)(?:\/|$)/.test(pathname)) return null;
+  if (socialLinks.length === 0 || /\/(?:cart|checkout)(?:\/|$)/.test(pathname)) return null;
 
   return (
     <nav
@@ -91,13 +66,13 @@ export function SocialBubbles() {
       // above it rather than overlapping the cart total.
       className="fixed right-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-2.5 sm:right-5 sm:gap-3 lg:bottom-7"
     >
-      {SOCIAL_BUBBLES.map(({ href, src, label, ringColor }, index) => (
+      {socialLinks.map((social, index) => (
         <a
-          key={href}
-          href={href}
+          key={social.id}
+          href={social.url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={label}
+          aria-label={social.name}
           aria-hidden={!visible}
           tabIndex={visible ? 0 : -1}
           className={`group relative flex transition-all duration-300 ease-out ${
@@ -105,23 +80,23 @@ export function SocialBubbles() {
               ? "translate-y-0 scale-100 opacity-100"
               : "pointer-events-none translate-y-4 scale-75 opacity-0"
           }`}
-          style={{ transitionDelay: `${(visible ? SOCIAL_BUBBLES.length - 1 - index : index) * 40}ms` }}
+          style={{ transitionDelay: `${(visible ? socialLinks.length - 1 - index : index) * 40}ms` }}
         >
           <span
             aria-hidden
             className="absolute inset-0 rounded-full motion-safe:animate-ping"
             style={{
-              backgroundColor: ringColor,
+              backgroundColor: RING_COLORS[index % RING_COLORS.length],
               animationDuration: "2.4s",
               animationDelay: `${index * 0.3}s`,
             }}
           />
           <span className="relative size-8 overflow-hidden rounded-full ring-2 ring-white shadow-lift transition-transform duration-200 group-hover:scale-110 sm:size-9">
-            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
-            <img src={src} alt="" className="size-full object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element -- admin-managed logo URL, arbitrary domain */}
+            <img src={social.logoUrl} alt="" className="size-full object-cover" />
           </span>
           <span className="pointer-events-none absolute top-1/2 right-full mr-3 hidden -translate-y-1/2 translate-x-1 rounded-md bg-ink-strong px-2.5 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-lift transition duration-200 group-hover:translate-x-0 group-hover:opacity-100 lg:block">
-            {label}
+            {social.name}
           </span>
         </a>
       ))}

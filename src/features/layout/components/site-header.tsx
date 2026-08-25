@@ -7,6 +7,7 @@ import { UserIcon } from "@/components/ui/icons";
 import { navHref } from "@/config/nav";
 import { CartMenu } from "@/features/cart/components/cart-menu";
 import type { CategoryNode } from "@/features/catalog/tree";
+import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
 import { ProductSearch } from "@/features/search/components/product-search";
 import { useCondensedHeader } from "@/hooks/use-condensed-header";
 import type { Locale } from "@/i18n/config";
@@ -40,10 +41,12 @@ export function SiteHeader({
   t,
   locale,
   categories,
+  siteSettings,
 }: {
   t: Dictionary;
   locale: Locale;
   categories: CategoryNode[];
+  siteSettings: Pick<SiteSettings, "companyName" | "phone">;
 }) {
   const condensed = useCondensedHeader();
   const pathname = usePathname();
@@ -53,13 +56,13 @@ export function SiteHeader({
       <div className="site-header__main shell flex flex-nowrap items-center gap-3 py-3 md:gap-5 md:py-3.5">
         {/* Leads the row on touch, where the menu is the primary way into the
             catalogue and the left edge is where a thumb expects to find it. */}
-        <MobileNav categories={categories} />
+        <MobileNav categories={categories} phone={siteSettings.phone} />
 
         <Link href={`/${locale}`} className="flex min-w-0 flex-none items-center gap-2.5 md:gap-3.5">
           {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
           <img
             src="/logo-d-tech.png"
-            alt={t.companyName}
+            alt={siteSettings.companyName}
             className={cn(
               "w-auto flex-none transition-[height] duration-200",
               condensed ? "h-8 md:h-9" : "h-9 md:h-11",
@@ -67,7 +70,7 @@ export function SiteHeader({
           />
           <span className="site-header__brand-copy min-w-0">
             <span className="block truncate text-[15px] font-bold text-[#171717] md:text-[17px]">
-              {t.companyName}
+              {siteSettings.companyName}
             </span>
             {/* First thing to go when space tightens: it is the one line here
                 that no one is navigating with. */}

@@ -10,8 +10,6 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 
 import { RevealSection } from "./reveal-section";
 
-const TIKTOK_PROFILE_URL = "https://www.tiktok.com/@dcomputer7?_r=1&_t=ZS-98octHc6xDp";
-
 /**
  * Videos are managed in admin. A TikTok player is loaded only after a visitor
  * chooses a card, preventing five third-party embeds from delaying the homepage.
@@ -19,10 +17,12 @@ const TIKTOK_PROFILE_URL = "https://www.tiktok.com/@dcomputer7?_r=1&_t=ZS-98octH
 export function TikTokSection({
   t,
   videos,
+  profileUrl,
   showAction = true,
 }: {
   t: Dictionary;
   videos: PublicTiktokVideo[];
+  profileUrl?: string;
   showAction?: boolean;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
@@ -51,8 +51,8 @@ export function TikTokSection({
     <RevealSection className="shell py-12 md:py-16">
       <SectionHeading
         title={t.tiktokTitle}
-        action={showAction ? t.viewAll : undefined}
-        actionHref={TIKTOK_PROFILE_URL}
+        action={showAction && profileUrl ? t.viewAll : undefined}
+        actionHref={profileUrl}
       />
       <p className="-mt-3 mb-6 text-[13.5px] text-ink-muted md:mb-7">{t.tiktokDesc}</p>
       <div className="relative">

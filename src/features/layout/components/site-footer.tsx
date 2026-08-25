@@ -3,29 +3,22 @@
 import Link from "next/link";
 
 import { MapPinIcon, PhoneIcon } from "@/components/ui/icons";
-import { footerHref } from "@/config/nav";
+import type { Locale } from "@/i18n/config";
+import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
 import { useReveal } from "@/hooks/use-reveal";
 import { useI18n } from "@/i18n/i18n-provider";
 
-const SOCIALS = [
-  {
-    href: "https://www.facebook.com/nguyenviet.dung.92",
-    src: "/fb.png",
-    label: "Fanpage Facebook",
-  },
-  {
-    href: "https://www.tiktok.com/@dcomputer7?_r=1&_t=ZS-98octHc6xDp",
-    src: "/tiktok.png",
-    label: "TikTok Shop",
-  },
-  {
-    href: "https://beacons.ai/dcomputer",
-    src: "/beacons.png",
-    label: "Beacons - Link Bio",
-  },
-];
+const FOOTER_LINK_CLASS = "opacity-85 transition hover:text-accent hover:opacity-100";
 
-export function SiteFooter() {
+/** `""` = no destination page yet, falls back to the storefront home. An absolute
+ * URL is used as-is (external); anything else is a storefront-relative path. */
+function resolveFooterLinkHref(locale: Locale, url: string): string {
+  if (!url) return `/${locale}`;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `/${locale}${url}`;
+}
+
+export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
   const { locale, t } = useI18n();
   const { ref, revealed } = useReveal<HTMLElement>();
 
@@ -39,50 +32,62 @@ export function SiteFooter() {
         <div>
           <div className="mb-3 flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
-            <img src="/logo-d-tech.png" alt={t.companyName} className="h-9 w-auto" />
-            <span className="text-base font-extrabold text-white">{t.companyName}</span>
+            <img src="/logo-d-tech.png" alt={siteSettings.companyName} className="h-9 w-auto" />
+            <span className="text-base font-extrabold text-white">{siteSettings.companyName}</span>
           </div>
           <p className="text-[12.5px] leading-relaxed">{t.tagline}</p>
           <div className="mt-4 flex flex-col gap-2 text-[12.5px] opacity-85">
             <span className="flex items-start gap-2">
               <MapPinIcon className="mt-0.5 flex-none" />
-              {t.address}
+              {siteSettings.address}
             </span>
-            <a href={`tel:${t.phone.replace(/-/g, "")}`} className="flex items-center gap-2 transition hover:text-accent hover:opacity-100">
+            <a href={`tel:${siteSettings.phone.replace(/-/g, "")}`} className="flex items-center gap-2 transition hover:text-accent hover:opacity-100">
               <PhoneIcon className="flex-none" />
-              {t.phone}
+              {siteSettings.phone}
             </a>
           </div>
           <div className="mt-[18px] flex gap-3">
-            {SOCIALS.map((social) => (
+            {siteSettings.socialLinks.map((social) => (
               <a
-                key={social.href}
-                href={social.href}
+                key={social.id}
+                href={social.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={social.label}
+                aria-label={social.name}
                 className="block size-6 overflow-hidden rounded-full ring-2 ring-white sm:size-7"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- static social icon */}
-                <img src={social.src} alt="" className="size-full object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element -- admin-managed logo URL, arbitrary domain */}
+                <img src={social.logoUrl} alt="" className="size-full object-cover" />
               </a>
             ))}
           </div>
         </div>
 
-        {t.footerColumns.map((column, columnIndex) => (
-          <div key={column.title}>
+        {siteSettings.footerColumns.map((column) => (
+          <div key={column.id}>
             <h3 className="mb-3.5 text-sm font-bold text-white">{column.title}</h3>
             <div className="flex flex-col gap-2.5 text-[13px]">
-              {column.links.map((link, linkIndex) => (
-                <Link
-                  key={link}
-                  href={footerHref(locale, columnIndex, linkIndex)}
-                  className="opacity-85 transition hover:text-accent hover:opacity-100"
-                >
-                  {link}
-                </Link>
-              ))}
+              {column.links.map((link) =>
+                /^https?:\/\//i.test(link.url) ? (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={FOOTER_LINK_CLASS}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.id}
+                    href={resolveFooterLinkHref(locale, link.url)}
+                    className={FOOTER_LINK_CLASS}
+                  >
+                    {link.label}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
         ))}

@@ -15,6 +15,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listCategories, listBrands } from "@/server/services/catalog.service";
 import { listProductPage } from "@/server/services/product.service";
+import { getSiteSettings } from "@/server/services/site-settings.service";
 
 // Filtering, sorting and paging all resolve against the live backend — this
 // page must never be frozen into a static HTML file at build time.
@@ -62,11 +63,12 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
 
   const query = parseProductQuery(rawSearchParams);
 
-  const [t, listing, categories, brands] = await Promise.all([
+  const [t, listing, categories, brands, siteSettings] = await Promise.all([
     getDictionary(locale),
     listProductPage(query),
     listCategories(),
     listBrands(),
+    getSiteSettings(),
   ]);
 
   const selectedCategory = categories.find((category) => category.slug === query.category) ?? null;
@@ -89,7 +91,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
 
       <header className="mb-6 border-b border-line pb-6 md:mb-7 md:pb-7">
         <p className="mb-2 text-[11px] font-black tracking-[1.4px] text-accent uppercase">
-          {t.companyName}
+          {siteSettings.companyName}
         </p>
         <h1 className="max-w-[900px] text-[27px] leading-tight font-black md:text-[36px]">
           {pageTitle}

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CartPageView } from "@/features/cart/components/cart-page-view";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { getSiteSettings } from "@/server/services/site-settings.service";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -27,7 +28,7 @@ export default async function CartPage({ params }: PageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const t = await getDictionary(locale);
+  const [t, siteSettings] = await Promise.all([getDictionary(locale), getSiteSettings()]);
 
   return (
     <div className="min-h-[60vh] bg-white">
@@ -49,7 +50,7 @@ export default async function CartPage({ params }: PageProps) {
           <h1 className="text-[28px] leading-tight font-black md:text-[38px]">{t.cartTitle}</h1>
         </header>
 
-        <CartPageView />
+        <CartPageView phone={siteSettings.phone} />
       </div>
     </div>
   );

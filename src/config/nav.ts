@@ -18,21 +18,10 @@ const NAV_PATHS: readonly string[] = [
   "/articles", // ブログ
 ];
 
-const FOOTER_PATHS: readonly (readonly string[])[] = [
-  ["/products", "", "", ""], // 製品・サービス
-  ["", "", "", ""], // ご利用ガイド
-  ["", "", "", ""], // サポート
-  ["", "", ""], // 会社情報
-];
-
 function href(locale: Locale, path: string | undefined): string {
   return `/${locale}${path ?? ""}`;
 }
 
 export function navHref(locale: Locale, index: number): string {
   return href(locale, NAV_PATHS[index]);
-}
-
-export function footerHref(locale: Locale, column: number, index: number): string {
-  return href(locale, FOOTER_PATHS[column]?.[index]);
 }
