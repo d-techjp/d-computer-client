@@ -28,8 +28,8 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
       data-revealed={revealed}
       className="reveal bg-ink-strong text-ink-invert"
     >
-      <div className="shell grid grid-cols-1 gap-8 pt-12 pb-7 xs:grid-cols-2 md:pt-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
-        <div>
+      <div className="shell grid grid-cols-1 gap-8 pt-12 pb-7 md:pt-14 lg:grid-cols-[minmax(340px,1.35fr)_minmax(0,3.65fr)] lg:gap-x-12">
+        <div className="min-w-0">
           <div className="mb-3 flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
             <img src="/logo-d-tech.png" alt={siteSettings.companyName} className="h-9 w-auto" />
@@ -37,7 +37,7 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
           </div>
           <p className="text-[12.5px] leading-relaxed">{t.tagline}</p>
           <div className="mt-4 flex flex-col gap-2 text-[12.5px] opacity-85">
-            <span className="flex items-start gap-2">
+            <span className="flex items-start gap-2 break-words">
               <MapPinIcon className="mt-0.5 flex-none" />
               {siteSettings.address}
             </span>
@@ -63,34 +63,36 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
           </div>
         </div>
 
-        {siteSettings.footerColumns.map((column) => (
-          <div key={column.id}>
-            <h3 className="mb-3.5 text-sm font-bold text-white">{column.title}</h3>
-            <div className="flex flex-col gap-2.5 text-[13px]">
-              {column.links.map((link) =>
-                /^https?:\/\//i.test(link.url) ? (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={FOOTER_LINK_CLASS}
-                  >
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.id}
-                    href={resolveFooterLinkHref(locale, link.url)}
-                    className={FOOTER_LINK_CLASS}
-                  >
-                    {link.label}
-                  </Link>
-                ),
-              )}
+        <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-8 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {siteSettings.footerColumns.map((column) => (
+            <div key={column.id} className="min-w-0">
+              <h3 className="mb-3.5 text-sm font-bold text-white">{column.title}</h3>
+              <div className="flex flex-col gap-2.5 text-[13px]">
+                {column.links.map((link) =>
+                  /^https?:\/\//i.test(link.url) ? (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={FOOTER_LINK_CLASS}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.id}
+                      href={resolveFooterLinkHref(locale, link.url)}
+                      className={FOOTER_LINK_CLASS}
+                    >
+                      {link.label}
+                    </Link>
+                  ),
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="shell flex flex-wrap items-center justify-between gap-2.5 border-t border-line-invert py-5 text-xs">
