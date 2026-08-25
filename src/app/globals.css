@@ -251,6 +251,10 @@
 
   border-bottom: 0;
   background: #f7f5f0;
+  /* Collapsing the desktop navigation changes this sticky element's height.
+     It must not become the browser's scroll anchor, otherwise fast scrolling
+     can make content appear to stick beneath the header mid-transition. */
+  overflow-anchor: none;
 }
 
 .site-topbar {

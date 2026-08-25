@@ -110,18 +110,15 @@ export function SiteHeader({
         </div>
       </div>
 
-      {/* The nav bar. Hidden below `lg` — its links live in `<MobileNav>` and
-          its categories in that sheet's own expandable list. Collapsed by
-          height rather than unmounted so the fold reads as the header
-          compacting, instead of the page below it jumping up a row. */}
-      {/* `overflow-hidden` only while collapsing. Left on permanently it also
-          clips the category flyout, which drops out of this row — the panel
-          renders but is sliced off at the row's height. */}
+      {/* The nav bar is hidden below `lg`; its links live in `<MobileNav>`.
+          When compact, hide this row immediately. Animating its height leaves
+          a partially collapsed blank strip under the sticky header during a
+          fast scroll. */}
       <div
         data-fit-collapsible
         className={cn(
-          "site-header__nav hidden transition-[max-height,opacity] duration-200 ease-out lg:block",
-          condensed ? "max-h-0 overflow-hidden opacity-0" : "max-h-16 opacity-100",
+          "site-header__nav hidden",
+          condensed ? "lg:hidden" : "lg:block",
         )}
         aria-hidden={condensed}
       >

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ChevronRightIcon, MenuIcon } from "@/components/ui/icons";
 import type { CategoryNode } from "@/features/catalog/tree";
@@ -44,6 +44,20 @@ export function CategoryMenu({
     setOpen(false);
     setActiveId(null);
   };
+
+  // The header can compact while the pointer still rests on its old location.
+  // In that case `mouseleave` is not reliable, so a hover menu must close as
+  // soon as the page starts moving rather than remaining attached to the
+  // compact header during a fast scroll.
+  useEffect(() => {
+    const closeOnScroll = () => {
+      setOpen(false);
+      setActiveId(null);
+    };
+
+    window.addEventListener("scroll", closeOnScroll, { passive: true });
+    return () => window.removeEventListener("scroll", closeOnScroll);
+  }, []);
 
   if (categories.length === 0) return null;
 

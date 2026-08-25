@@ -29,7 +29,10 @@ export function useFitToViewport<T extends HTMLElement>() {
       const collapsedHeight = collapsible?.getBoundingClientRect().height ?? 0;
       // Measure the real row, not the collapsible wrapper's `scrollHeight`:
       // the latter also includes decorative pseudo-elements below the nav.
-      const expandedHeight = expandedContent?.getBoundingClientRect().height ?? collapsedHeight;
+      // The compact header removes this row from layout entirely, so a resize
+      // while scrolled would otherwise report zero. Its documented minimum
+      // height is `min-h-12` (48px), which preserves the original hero offset.
+      const expandedHeight = expandedContent?.getBoundingClientRect().height || 48;
 
       // `top + scrollY` changes when the sticky header folds its navigation
       // row. Always add back the hidden part so a resize/HMR while condensed
