@@ -8,6 +8,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ payment?: string | string[] }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -23,8 +24,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CheckoutPage({ params }: PageProps) {
+export default async function CheckoutPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  // Stripe sends the customer back here with `?payment=cancelled` when they
+  // leave its payment page without paying.
+  const paymentCancelled = (await searchParams)?.payment === "cancelled";
   if (!isLocale(locale)) notFound();
 
   const t = await getDictionary(locale);
@@ -51,7 +55,7 @@ export default async function CheckoutPage({ params }: PageProps) {
           </h1>
         </header>
 
-        <CheckoutFlow />
+        <CheckoutFlow paymentCancelled={paymentCancelled} />
       </div>
     </div>
   );

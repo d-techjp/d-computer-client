@@ -81,6 +81,7 @@ export const paymentMethodSchema = z.enum([
   "bank_transfer",
   "credit_card",
   "e_wallet",
+  "stripe",
 ]);
 
 export const checkoutPreviewRequestSchema = z.object({
@@ -124,6 +125,7 @@ export const checkoutOrderSchema = z.object({
   code: z.string(),
   userId: z.string().uuid().nullable().optional(),
   status: z.enum([
+    "awaiting_payment",
     "pending",
     "confirmed",
     "processing",
@@ -144,10 +146,40 @@ export const checkoutOrderSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
+export const orderStatusSchema = checkoutOrderSchema.shape.status;
+export const paymentStatusSchema = checkoutOrderSchema.shape.paymentStatus;
+
+/**
+ * Card / PayPay go through Stripe Checkout: the backend creates the order
+ * (awaiting payment, stock not yet taken) and hands back a hosted page URL.
+ * `locale` picks both the Stripe page language and the return URL path.
+ */
+export const stripeCheckoutRequestSchema = z.object({
+  cartId: z.string().uuid(),
+  shippingAddress: shippingAddressSchema,
+  note: z.string().trim().max(500).nullable().optional(),
+  locale: z.enum(["ja", "vi"]),
+});
+
+export const stripeCheckoutResultSchema = z.object({
+  id: z.string().uuid(),
+  orderCode: z.string(),
+  checkoutUrl: z.string().url(),
+});
+
+export const stripeSessionStatusSchema = z.object({
+  orderCode: z.string(),
+  total: z.number(),
+  status: orderStatusSchema,
+  paymentStatus: paymentStatusSchema,
+});
+
 export const cartResponseSchema = envelopeOrPlainSchema(cartSchema);
 export const cartMutationResponseSchema = envelopeOrPlainSchema(cartMutationResultSchema);
 export const checkoutPreviewResponseSchema = envelopeOrPlainSchema(checkoutPreviewSchema);
 export const checkoutOrderResponseSchema = envelopeOrPlainSchema(checkoutOrderSchema);
+export const stripeCheckoutResponseSchema = envelopeOrPlainSchema(stripeCheckoutResultSchema);
+export const stripeSessionStatusResponseSchema = envelopeOrPlainSchema(stripeSessionStatusSchema);
 
 export type Cart = z.infer<typeof cartSchema>;
 export type CartItem = z.infer<typeof cartItemSchema>;
@@ -157,3 +189,5 @@ export type ShippingAddress = z.infer<typeof shippingAddressSchema>;
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 export type CheckoutPreview = z.infer<typeof checkoutPreviewSchema>;
 export type CheckoutOrder = z.infer<typeof checkoutOrderSchema>;
+export type StripeCheckoutResult = z.infer<typeof stripeCheckoutResultSchema>;
+export type StripeSessionStatus = z.infer<typeof stripeSessionStatusSchema>;

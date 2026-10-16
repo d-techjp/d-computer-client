@@ -18,6 +18,7 @@ import { useCartHydrated } from "@/features/cart/store/use-cart-hydrated";
 import {
   placeOrder as placeCheckoutOrder,
   previewCheckout,
+  startStripeCheckout,
 } from "@/features/cart/api/cart.repository";
 import type {
   CartItem,
@@ -56,7 +57,7 @@ const EMPTY_FORM: CheckoutFormState = {
 const fieldClass =
   "h-11 w-full border border-line-strong bg-white px-3.5 text-[13.5px] outline-none transition-colors placeholder:text-ink-faint focus:border-[#C98B14] focus:ring-2 focus:ring-[#C98B14]/15";
 
-export function CheckoutFlow() {
+export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: boolean }) {
   const { locale, t } = useI18n();
   const hydrated = useCartHydrated();
   const cartLoading = useCartLoading();
@@ -74,6 +75,16 @@ export function CheckoutFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [createdOrder, setCreatedOrder] = useState<CheckoutOrder | null>(null);
+
+  // Browser "back" from the Stripe page can restore this page from the
+  // back/forward cache with the submit button still stuck on "redirecting".
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setSubmitting(false);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   if (!hydrated || (cartLoading && lines.length === 0)) return <CheckoutSkeleton />;
 
@@ -109,7 +120,7 @@ export function CheckoutFlow() {
     try {
       const nextPreview = await previewCheckout(cartId, shippingAddress);
       setPreview(nextPreview);
-      setPaymentMethod(resolvePaymentMethod(nextPreview.paymentMethods));
+      setPaymentMethod((current) => resolvePaymentMethod(nextPreview.paymentMethods, current));
       setForm((current) => ({
         ...current,
         fullName: nextPreview.shippingAddress.fullName,
@@ -136,6 +147,20 @@ export function CheckoutFlow() {
     setSubmitting(true);
     setError("");
     try {
+      if (paymentMethod === "stripe") {
+        // The cart stays open on purpose: if the customer backs out of the
+        // Stripe page they land here again with everything still in it. It is
+        // closed server-side once the payment actually succeeds.
+        const { checkoutUrl } = await startStripeCheckout({
+          cartId,
+          shippingAddress: preview.shippingAddress,
+          locale,
+          ...(form.orderNote.trim() ? { note: form.orderNote.trim() } : {}),
+        });
+        window.location.assign(checkoutUrl);
+        return; // keep `submitting` on while the browser navigates away
+      }
+
       const order = await placeCheckoutOrder({
         cartId,
         shippingAddress: preview.shippingAddress,
@@ -154,7 +179,7 @@ export function CheckoutFlow() {
         try {
           const nextPreview = await previewCheckout(cartId, shippingAddress);
           setPreview(nextPreview);
-          setPaymentMethod(resolvePaymentMethod(nextPreview.paymentMethods));
+          setPaymentMethod(resolvePaymentMethod(nextPreview.paymentMethods, paymentMethod));
         } catch {
           // Keep the checkout error as the primary message. The cart refresh
           // above already synchronised whatever state is still recoverable.
@@ -162,10 +187,18 @@ export function CheckoutFlow() {
       } else if (apiError.status === 403 || apiError.status === 404) {
         discard();
       }
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
+
+  const submitLabel =
+    paymentMethod === "stripe"
+      ? submitting
+        ? t.checkoutRedirecting
+        : t.checkoutPayNow
+      : submitting
+        ? t.checkoutPlacingOrder
+        : t.checkoutPlaceOrder;
 
   const displayedItems = step === "review" && preview ? preview.items : lines;
   const pricing = preview ?? {
@@ -178,6 +211,15 @@ export function CheckoutFlow() {
   return (
     <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
       <CheckoutSteps step={step} />
+
+      {paymentCancelled && step === "address" ? (
+        <p
+          role="status"
+          className="mb-7 border-l-2 border-[#D4AF37] bg-[#FFF8E8] px-3.5 py-3 text-[13px] leading-5 text-ink-body"
+        >
+          {t.checkoutPaymentCancelled}
+        </p>
+      ) : null}
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
         <section className="min-w-0">
@@ -268,6 +310,9 @@ export function CheckoutFlow() {
           ) : preview ? (
             <ReviewPanel
               preview={preview}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              disabled={submitting}
               onEdit={() => {
                 setError("");
                 setStep("address");
@@ -352,7 +397,7 @@ export function CheckoutFlow() {
                 disabled={submitting || !preview?.canPlaceOrder || !paymentMethod}
                 className="min-h-12 px-2 text-center leading-5"
               >
-                {submitting ? t.checkoutPlacingOrder : t.checkoutPlaceOrder}
+                {submitLabel}
               </Button>
             </div>
           )}
@@ -401,7 +446,7 @@ export function CheckoutFlow() {
               disabled={submitting || !preview?.canPlaceOrder || !paymentMethod}
               className="min-h-11 min-w-[10.5rem] px-4 text-center text-[13px]"
             >
-              {submitting ? t.checkoutPlacingOrder : t.checkoutPlaceOrder}
+              {submitLabel}
             </Button>
           )}
         </div>
@@ -468,7 +513,12 @@ function toShippingAddress(form: CheckoutFormState): ShippingAddress {
   };
 }
 
-function resolvePaymentMethod(methods: PaymentMethod[]): PaymentMethod | null {
+/** Keeps the customer's choice while it is still offered; otherwise COD first. */
+function resolvePaymentMethod(
+  methods: PaymentMethod[],
+  current: PaymentMethod | null = null,
+): PaymentMethod | null {
+  if (current && methods.includes(current)) return current;
   return methods.includes("cod") ? "cod" : (methods[0] ?? null);
 }
 
@@ -503,9 +553,15 @@ function CheckoutSteps({ step }: { step: CheckoutStep }) {
 
 function ReviewPanel({
   preview,
+  paymentMethod,
+  onPaymentMethodChange,
+  disabled,
   onEdit,
 }: {
   preview: CheckoutPreview;
+  paymentMethod: PaymentMethod | null;
+  onPaymentMethodChange: (method: PaymentMethod) => void;
+  disabled: boolean;
   onEdit: () => void;
 }) {
   const { t } = useI18n();
@@ -534,9 +590,35 @@ function ReviewPanel({
         <p className="mt-2 text-[13px] text-ink-body">{address.phone}</p>
       </section>
 
-      <p className="mb-7 border-l-2 border-[#D4AF37] bg-[#FFF8E8] px-3.5 py-3 text-[13px] leading-5 text-ink-body">
-        {t.checkoutPaymentNote}
-      </p>
+      <fieldset className="mb-7" disabled={disabled}>
+        <legend className="mb-3 text-sm font-black">{t.checkoutPaymentMethod}</legend>
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          {preview.paymentMethods.map((method) => (
+            <label
+              key={method}
+              className={cn(
+                "flex min-h-12 cursor-pointer items-center gap-3 border px-3.5 py-3 text-[13.5px] font-bold transition-colors",
+                paymentMethod === method
+                  ? "border-[#C98B14] bg-[#FFF8E8]"
+                  : "border-line-strong hover:border-ink-faint",
+              )}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={method}
+                checked={paymentMethod === method}
+                onChange={() => onPaymentMethodChange(method)}
+                className="size-4 accent-[#C98B14]"
+              />
+              {t.checkoutPaymentMethods[method]}
+            </label>
+          ))}
+        </div>
+        <p className="mt-3 border-l-2 border-[#D4AF37] bg-[#FFF8E8] px-3.5 py-3 text-[13px] leading-5 text-ink-body">
+          {paymentMethod === "stripe" ? t.checkoutStripeNote : t.checkoutPaymentNote}
+        </p>
+      </fieldset>
 
       <ReadOnlyOrderItems items={preview.items} />
     </div>
