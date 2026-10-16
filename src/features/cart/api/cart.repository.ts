@@ -66,6 +66,8 @@ export async function previewCheckout(
 export async function placeOrder(input: {
   cartId: string;
   shippingAddress: ShippingAddress;
+  email: string;
+  locale: "ja" | "vi";
   paymentMethod: PaymentMethod;
   note?: string;
 }): Promise<CheckoutOrder> {
@@ -77,6 +79,7 @@ export async function placeOrder(input: {
 export async function startStripeCheckout(input: {
   cartId: string;
   shippingAddress: ShippingAddress;
+  email: string;
   locale: "ja" | "vi";
   note?: string;
 }): Promise<StripeCheckoutResult> {

@@ -111,6 +111,8 @@ const vi: typeof ja = {
   checkoutAddressTitle: "Thông tin người nhận",
   checkoutAddressDesc: "Nhập thông tin để cửa hàng xác nhận và giao đơn hàng cho bạn.",
   checkoutFullName: "Họ và tên",
+  checkoutEmail: "Email",
+  checkoutEmailHint: "Xác nhận đơn hàng và thông báo giao hàng sẽ được gửi tới email này.",
   checkoutPhone: "Số điện thoại",
   checkoutProvince: "Tỉnh / Thành phố",
   checkoutDistrict: "Quận / Huyện",

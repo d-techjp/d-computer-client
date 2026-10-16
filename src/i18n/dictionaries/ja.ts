@@ -109,6 +109,8 @@ const ja = {
   checkoutAddressTitle: "お客様・お届け先情報",
   checkoutAddressDesc: "ご注文の確認に必要な情報を入力してください。",
   checkoutFullName: "お名前",
+  checkoutEmail: "メールアドレス",
+  checkoutEmailHint: "ご注文確認・発送のお知らせをこちらのアドレスにお送りします。",
   checkoutPhone: "電話番号",
   checkoutProvince: "都道府県",
   checkoutDistrict: "市区町村",

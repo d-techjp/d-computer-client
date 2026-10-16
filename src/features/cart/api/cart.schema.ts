@@ -100,9 +100,14 @@ export const checkoutPreviewSchema = z.object({
   canPlaceOrder: z.boolean(),
 });
 
+export const checkoutEmailSchema = z.string().trim().email().max(255);
+export const checkoutLocaleSchema = z.enum(["ja", "vi"]);
+
 export const placeOrderRequestSchema = z.object({
   cartId: z.string().uuid(),
   shippingAddress: shippingAddressSchema,
+  email: checkoutEmailSchema,
+  locale: checkoutLocaleSchema.optional(),
   paymentMethod: paymentMethodSchema.optional().default("cod"),
   note: z.string().trim().max(500).nullable().optional(),
 });
@@ -141,6 +146,7 @@ export const checkoutOrderSchema = z.object({
   shippingFee: z.number(),
   total: z.number(),
   shippingAddress: shippingAddressSchema,
+  customerEmail: z.string().nullable().optional(),
   note: z.string().nullable().optional(),
   items: z.array(orderItemSchema),
   createdAt: z.string().datetime(),
@@ -157,8 +163,9 @@ export const paymentStatusSchema = checkoutOrderSchema.shape.paymentStatus;
 export const stripeCheckoutRequestSchema = z.object({
   cartId: z.string().uuid(),
   shippingAddress: shippingAddressSchema,
+  email: checkoutEmailSchema,
   note: z.string().trim().max(500).nullable().optional(),
-  locale: z.enum(["ja", "vi"]),
+  locale: checkoutLocaleSchema,
 });
 
 export const stripeCheckoutResultSchema = z.object({

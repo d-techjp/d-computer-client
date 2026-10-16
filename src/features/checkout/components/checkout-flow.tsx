@@ -37,6 +37,7 @@ type CheckoutStep = "address" | "review";
 type CheckoutFormState = {
   fullName: string;
   phone: string;
+  email: string;
   province: string;
   district: string;
   ward: string;
@@ -47,6 +48,7 @@ type CheckoutFormState = {
 const EMPTY_FORM: CheckoutFormState = {
   fullName: "",
   phone: "",
+  email: "",
   province: "",
   district: "",
   ward: "",
@@ -154,6 +156,7 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
         const { checkoutUrl } = await startStripeCheckout({
           cartId,
           shippingAddress: preview.shippingAddress,
+          email: form.email.trim(),
           locale,
           ...(form.orderNote.trim() ? { note: form.orderNote.trim() } : {}),
         });
@@ -164,6 +167,8 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
       const order = await placeCheckoutOrder({
         cartId,
         shippingAddress: preview.shippingAddress,
+        email: form.email.trim(),
+        locale,
         paymentMethod,
         ...(form.orderNote.trim() ? { note: form.orderNote.trim() } : {}),
       });
@@ -253,6 +258,18 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
                   required
                 />
                 <FormField
+                  name="email"
+                  type="email"
+                  label={t.checkoutEmail}
+                  hint={t.checkoutEmailHint}
+                  value={form.email}
+                  onChange={changeField("email")}
+                  autoComplete="email"
+                  maxLength={255}
+                  required
+                  className="sm:col-span-2"
+                />
+                <FormField
                   name="province"
                   label={t.checkoutProvince}
                   value={form.province}
@@ -310,6 +327,7 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
           ) : preview ? (
             <ReviewPanel
               preview={preview}
+              email={form.email.trim()}
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
               disabled={submitting}
@@ -553,12 +571,14 @@ function CheckoutSteps({ step }: { step: CheckoutStep }) {
 
 function ReviewPanel({
   preview,
+  email,
   paymentMethod,
   onPaymentMethodChange,
   disabled,
   onEdit,
 }: {
   preview: CheckoutPreview;
+  email: string;
   paymentMethod: PaymentMethod | null;
   onPaymentMethodChange: (method: PaymentMethod) => void;
   disabled: boolean;
@@ -588,6 +608,7 @@ function ReviewPanel({
           {address.street}
         </p>
         <p className="mt-2 text-[13px] text-ink-body">{address.phone}</p>
+        <p className="mt-0.5 text-[13px] break-all text-ink-body">{email}</p>
       </section>
 
       <fieldset className="mb-7" disabled={disabled}>
@@ -629,6 +650,8 @@ type FormFieldProps = {
   name: keyof CheckoutFormState;
   label: string;
   optional?: string;
+  hint?: string;
+  type?: "text" | "email" | "tel";
   className?: string;
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -639,7 +662,15 @@ type FormFieldProps = {
   required?: boolean;
 };
 
-function FormField({ label, optional, className, required, ...inputProps }: FormFieldProps) {
+function FormField({
+  label,
+  optional,
+  hint,
+  className,
+  required,
+  type = "text",
+  ...inputProps
+}: FormFieldProps) {
   return (
     <label className={className}>
       <span className="mb-2 block text-[12.5px] font-bold">
@@ -647,7 +678,8 @@ function FormField({ label, optional, className, required, ...inputProps }: Form
         {required ? <span className="ml-1 text-accent">*</span> : null}
         {optional ? <span className="ml-1 font-normal text-ink-faint">({optional})</span> : null}
       </span>
-      <input {...inputProps} required={required} className={fieldClass} />
+      <input {...inputProps} type={type} required={required} className={fieldClass} />
+      {hint ? <span className="mt-1.5 block text-[11.5px] leading-4 text-ink-faint">{hint}</span> : null}
     </label>
   );
 }
