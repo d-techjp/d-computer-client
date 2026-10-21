@@ -150,7 +150,7 @@ export function ProductDetail({
     <>
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:gap-14">
         <section aria-label={t.detailSelectedImage}>
-          <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-white">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-white">
             {notForSale ? (
               <span className="absolute top-3.5 left-3.5 z-10 rounded bg-ink-strong px-3 py-1.5 text-xs font-bold text-white">
                 {t.badgeNotForSale}
