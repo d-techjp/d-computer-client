@@ -6,6 +6,6 @@
    never by hand. Money is JPY integers, tax included.
 3. Colors and spacing use the `@theme` tokens in `globals.css`; no literal `oklch(...)` or hex in components.
 4. Component variants use CVA; merge classes with `cn()` so the caller's `className` wins on conflict.
-5. Images use `next/image`. External image hosts must be added to `remotePatterns` (currently only `**.r2.dev`).
+5. Images use `next/image`. External image hosts must be added to `remotePatterns` (currently `cdn.d-techjp.com`, the R2 custom domain; use exact hostnames, never wildcards).
 6. Code comments are written in **English** (existing repo convention) and explain why.
 7. Before reporting done: `npm run lint && npx tsc --noEmit && npm run build`.
