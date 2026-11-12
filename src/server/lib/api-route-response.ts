@@ -2,9 +2,19 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { ApiError } from "@/lib/api/errors";
 
+import { readSessionToken } from "./auth-session";
+
+/**
+ * The shopper's identity for the backend: the session cookie, or an explicit
+ * `Authorization` header (kept for tooling and tests). Carts and checkout use
+ * this, so a signed-in shopper's cart and orders attach to their account.
+ */
 export function optionalAuthorization(request: NextRequest): HeadersInit | undefined {
   const authorization = request.headers.get("authorization");
-  return authorization ? { Authorization: authorization } : undefined;
+  if (authorization) return { Authorization: authorization };
+
+  const token = readSessionToken(request);
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
 }
 
 export function apiRouteError(cause: unknown): NextResponse {

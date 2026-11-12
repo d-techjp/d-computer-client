@@ -51,6 +51,9 @@
   --animate-fade-in-up: fade-in-up 0.7s ease-out both;
   --animate-drift: drift 9s ease-in-out infinite alternate;
   --animate-slide-up: slide-up 0.25s ease-out both;
+  /* The desktop cart drawer's entrance, mirroring the mobile sheet's slide-up. */
+  --animate-slide-in-right: slide-in-right 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.2s ease-out both;
   /* Hover-triggered surfaces (the category flyout) need to feel instant —
      the 0.7s entrance above is an on-scroll reveal and reads as lag here. */
   --animate-flyout: flyout 0.16s ease-out both;
@@ -85,6 +88,24 @@
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 

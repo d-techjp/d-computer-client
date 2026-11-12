@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { useAddToCartFeedback } from "@/features/cart/hooks/use-add-to-cart-feedback";
 import { useCartActions, useCartBusy } from "@/features/cart/store/cart.store";
-import { useUiStore } from "@/features/layout/store/ui.store";
 import { useI18n } from "@/i18n/i18n-provider";
 
 import type { Product } from "../types";
@@ -21,22 +21,9 @@ export function AddToCart({ product, disabled = false }: { product: Product; dis
 
   const { add } = useCartActions();
   const cartBusy = useCartBusy();
-  const showToast = useUiStore((state) => state.showToast);
+  const runAdd = useAddToCartFeedback();
 
-  const handleAdd = async () => {
-    showToast(t.cartAddedToast.replace("{product}", product.name));
-    const mutation = await add(product, quantity);
-    if (!mutation) {
-      showToast(t.cartAddFailed, "error");
-      return;
-    }
-    if (mutation.result.status !== "added") {
-      const message = mutation.result.issue
-        ? t.cartIssueLabels[mutation.result.issue]
-        : t.cartMutationAdjusted;
-      showToast(message, mutation.result.status === "rejected" ? "error" : "warning");
-    }
-  };
+  const handleAdd = () => runAdd(product.name, null, () => add(product, quantity));
 
   return (
     <div className="mb-6 flex items-center gap-4">
