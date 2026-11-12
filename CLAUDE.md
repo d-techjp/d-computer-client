@@ -39,6 +39,13 @@ src/
 - Client Component → `features/*/api/*.repository.ts` → `apiClient` → `/api/*` (route handler) → backend.
   The browser **never** calls the backend directly.
 
+**Auth:** the session is the backend JWT in the httpOnly cookie `dcs_session` (page JS never sees
+the token). In production nginx sends `/api/*` straight to NestJS, which sets/reads the cookie
+itself; in dev the `/api/auth/*` + `/api/users/me` route handlers do the same and
+`optionalAuthorization` turns the cookie into a Bearer header. `features/auth/store/auth.store` asks
+`/users/me` once per page load. Login/register/Google need a Cloudflare Turnstile token
+(`NEXT_PUBLIC_TURNSTILE_SITE_KEY`; Google button needs `NEXT_PUBLIC_GOOGLE_CLIENT_ID`).
+
 **Main flows:** the cart lives on the backend (`cartId` is persisted in `cart.store`, with
 `skipHydration` + rehydrate in an effect). Checkout (`checkout-flow.tsx`): COD creates the order
 immediately; Stripe creates a session → redirects to Stripe → returns to

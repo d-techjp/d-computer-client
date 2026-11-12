@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { UserIcon } from "@/components/ui/icons";
 import { navHref } from "@/config/nav";
+import { AccountMenu } from "@/features/auth/components/account-menu";
 import { CartMenu } from "@/features/cart/components/cart-menu";
 import type { CategoryNode } from "@/features/catalog/tree";
 import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
@@ -98,13 +98,7 @@ export function SiteHeader({
         <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2.5 md:gap-3 lg:flex-none">
           <ProductSearch />
 
-          <button
-            type="button"
-            className="site-header__utility-action hidden cursor-pointer items-center gap-1.5 text-sm font-medium lg:flex"
-          >
-            <UserIcon />
-            {t.login}
-          </button>
+          <AccountMenu />
 
           <CartMenu />
         </div>

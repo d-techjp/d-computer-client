@@ -14,6 +14,8 @@ COPY . .
 
 ENV NEXT_PUBLIC_API_BASE_URL=/api/v1
 ENV NEXT_PUBLIC_SITE_URL=https://d-techjp.com
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAF9sMcdl5gvlLGsj
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=675769604131-p5emsjsjnc9c3r3215keo9af6cnb1ue6.apps.googleusercontent.com
 
 RUN npm run build
 

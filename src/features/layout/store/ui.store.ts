@@ -13,7 +13,7 @@ import { create } from "zustand";
  * `openPanel` is a single value rather than one boolean per panel, which makes
  * "only one overlay at a time" impossible to get wrong.
  */
-export type Panel = "cart" | "language" | "search" | "nav" | null;
+export type Panel = "cart" | "language" | "search" | "nav" | "account" | null;
 
 type Toast = { id: number; message: string; tone: "success" | "warning" | "error" } | null;
 

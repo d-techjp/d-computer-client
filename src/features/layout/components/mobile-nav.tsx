@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import { ChevronRightIcon, CloseIcon, MenuIcon, PhoneIcon, UserIcon } from "@/components/ui/icons";
+import { ChevronRightIcon, CloseIcon, MenuIcon, PhoneIcon } from "@/components/ui/icons";
+import { MobileAccountLinks } from "@/features/auth/components/mobile-account-links";
 import type { CategoryNode } from "@/features/catalog/tree";
 import { categoryHref } from "@/features/products/filters";
 import { useDismissable } from "@/hooks/use-dismissable";
@@ -102,13 +103,7 @@ export function MobileNav({ categories, phone }: { categories: CategoryNode[]; p
             </div>
 
             <div className="mt-auto border-t border-line-soft px-5 py-4">
-              <button
-                type="button"
-                className="mb-4 flex cursor-pointer items-center gap-2 text-sm font-semibold transition-colors hover:text-accent"
-              >
-                <UserIcon />
-                {t.login}
-              </button>
+              <MobileAccountLinks onNavigate={close} />
 
               <a
                 href={`tel:${phone.replace(/-/g, "")}`}
