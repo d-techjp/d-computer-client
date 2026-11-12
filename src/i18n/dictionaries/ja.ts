@@ -75,6 +75,11 @@ const ja = {
   cartMutationAdjusted: "在庫数に合わせて数量を調整しました。",
   cartPriceChanged: "価格が{old}から{new}に変更されました。",
   cartCheckoutPricingNote: "送料と最終金額は、お届け先の確認後に表示されます。",
+  cartDrawerAdding: "カートに追加しています…",
+  cartDrawerAdded: "カートに追加しました",
+  cartViewCart: "カートを見る",
+  cartContinueShopping: "買い物を続ける",
+  cartReviewIssues: "カートで内容を確認する",
   cartBlockingIssues: "購入できない商品があります。削除または数量を変更してください。",
   cartIssueLabels: {
     out_of_stock: "在庫切れ",

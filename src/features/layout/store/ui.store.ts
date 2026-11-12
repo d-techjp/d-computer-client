@@ -17,24 +17,44 @@ export type Panel = "cart" | "language" | "search" | "nav" | null;
 
 type Toast = { id: number; message: string; tone: "success" | "warning" | "error" } | null;
 
+/**
+ * What the desktop cart drawer announces at its top after an add-to-cart.
+ * `pending` lets the drawer open on the click itself instead of waiting for
+ * the network, so the button never feels unresponsive.
+ */
+export type CartNotice = {
+  id: number;
+  variantId: string | null;
+  productName: string;
+  status: "pending" | "added" | "adjusted" | "rejected" | "failed";
+  message: string | null;
+} | null;
+
 type UiStore = {
   openPanel: Panel;
   toast: Toast;
+  cartNotice: CartNotice;
   toggle: (panel: Exclude<Panel, null>) => void;
   open: (panel: Exclude<Panel, null>) => void;
   close: () => void;
   showToast: (message: string, tone?: Exclude<Toast, null>["tone"]) => void;
   dismissToast: () => void;
+  setCartNotice: (notice: CartNotice) => void;
 };
 
 export const useUiStore = create<UiStore>()((set) => ({
   openPanel: null,
   toast: null,
-  toggle: (panel) => set((state) => ({ openPanel: state.openPanel === panel ? null : panel })),
+  cartNotice: null,
+  toggle: (panel) =>
+    set((state) => ({ openPanel: state.openPanel === panel ? null : panel, cartNotice: null })),
   open: (panel) => set({ openPanel: panel }),
-  close: () => set({ openPanel: null }),
+  // Closing any panel also retires the add-to-cart notice: reopening the cart
+  // from the header later should show the cart, not a stale "added" banner.
+  close: () => set({ openPanel: null, cartNotice: null }),
   showToast: (message, tone = "success") => set({ toast: { id: Date.now(), message, tone } }),
   dismissToast: () => set({ toast: null }),
+  setCartNotice: (cartNotice) => set({ cartNotice }),
 }));
 
 export const useIsPanelOpen = (panel: Exclude<Panel, null>) =>

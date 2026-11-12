@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/ui/icons";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { BADGE_ICONS } from "@/config/glyphs";
+import { useAddToCartFeedback } from "@/features/cart/hooks/use-add-to-cart-feedback";
 import { useCartActions, useCartBusy } from "@/features/cart/store/cart.store";
-import { useUiStore } from "@/features/layout/store/ui.store";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
@@ -80,7 +80,7 @@ export function ProductDetail({
   const imageScrollTimeout = useRef<number | null>(null);
   const { addVariant } = useCartActions();
   const cartBusy = useCartBusy();
-  const showToast = useUiStore((state) => state.showToast);
+  const runAdd = useAddToCartFeedback();
 
   const discount = selectedVariant ? variantDiscountPercent(selectedVariant) : 0;
   const notForSale = Boolean(selectedVariant && !selectedVariant.isActive);
@@ -90,18 +90,9 @@ export function ProductDetail({
 
   const handleAdd = async () => {
     if (!selectedVariant) return;
-    showToast(t.cartAddedToast.replace("{product}", product.name));
-    const mutation = await addVariant(product, selectedVariant, quantity);
-    if (!mutation) {
-      showToast(t.cartAddFailed, "error");
-      return;
-    }
-    if (mutation.result.status !== "added") {
-      const message = mutation.result.issue
-        ? t.cartIssueLabels[mutation.result.issue]
-        : t.cartMutationAdjusted;
-      showToast(message, mutation.result.status === "rejected" ? "error" : "warning");
-    }
+    await runAdd(product.name, selectedVariant.id, () =>
+      addVariant(product, selectedVariant, quantity),
+    );
   };
   const selectImage = (image: string) => {
     setSelectedImageOverride({ variantId: selectedVariant?.id ?? "", image });

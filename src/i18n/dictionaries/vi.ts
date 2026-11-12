@@ -77,6 +77,11 @@ const vi: typeof ja = {
   cartMutationAdjusted: "Số lượng đã được điều chỉnh theo tồn kho hiện tại.",
   cartPriceChanged: "Giá đã thay đổi từ {old} thành {new}.",
   cartCheckoutPricingNote: "Phí vận chuyển và tổng thanh toán sẽ được tính sau khi xác nhận địa chỉ.",
+  cartDrawerAdding: "Đang thêm vào giỏ hàng…",
+  cartDrawerAdded: "Đã thêm vào giỏ hàng",
+  cartViewCart: "Xem giỏ hàng",
+  cartContinueShopping: "Tiếp tục mua sắm",
+  cartReviewIssues: "Kiểm tra lại giỏ hàng",
   cartBlockingIssues: "Có sản phẩm chưa thể đặt hàng. Hãy xoá hoặc điều chỉnh số lượng.",
   cartIssueLabels: {
     out_of_stock: "Sản phẩm đã hết hàng",
