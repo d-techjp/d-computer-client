@@ -49,7 +49,7 @@ const ja = {
     "用途やご予算に合わせて、最適な構成をご提案。パーツの変更やこだわりの構成も自由自在。",
   customCta: "カスタムPCを相談する",
   blogTitle: "お知らせ・ブログ",
-  tiktokTitle: "TikTok Videos",
+  tiktokTitle: "TikTok動画",
   tiktokDesc: "D-TECHの最新動画をサイト内でご覧いただけます。",
   tiktokVideoTitle: "D-TECH TikTok video",
   tiktokPlayVideo: "動画を再生",

@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { useI18n } from "@/i18n/i18n-provider";
 import { ProductCard } from "@/features/products/components/product-card";
 import type { Product } from "@/features/products/types";
+import { cn } from "@/lib/utils/cn";
 
 import { useScrollCarousel } from "../hooks/use-scroll-carousel";
 import { RevealSection } from "./reveal-section";
@@ -17,7 +18,8 @@ export function ProductCarouselTrack({
   title: string;
 }) {
   const { t } = useI18n();
-  const { ref, step, pause, resume, dragHandlers } = useScrollCarousel<HTMLUListElement>(products.length);
+  const { ref, canScroll, step, pause, resume, dragHandlers } =
+    useScrollCarousel<HTMLUListElement>(products.length);
 
   return (
     // `data-home-carousel`: the hero's scroll arrow aims at the first of these.
@@ -45,7 +47,10 @@ export function ProductCarouselTrack({
           ref={ref}
           {...dragHandlers}
           onDragStart={(event) => event.preventDefault()}
-          className="flex cursor-grab gap-4 overflow-x-auto pt-1 pb-6 select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] md:gap-[22px] [&::-webkit-scrollbar]:hidden"
+          className={cn(
+            "flex gap-4 overflow-x-auto pt-1 pb-6 select-none [-ms-overflow-style:none] [scrollbar-width:none] md:gap-[22px] [&::-webkit-scrollbar]:hidden",
+            canScroll && "cursor-grab active:cursor-grabbing",
+          )}
         >
           {products.map((product, index) => (
             <li
@@ -57,22 +62,27 @@ export function ProductCarouselTrack({
           ))}
         </ul>
 
-        <button
-          type="button"
-          onClick={() => step(-1)}
-          aria-label={t.paginationPrev}
-          className="absolute top-[calc(4px+(100cqw-3*22px)/8)] -left-[18px] z-10 -translate-y-1/2 lg:top-[calc(4px+(100cqw-4*22px)/10)] hidden size-9 cursor-pointer items-center justify-center rounded-full border border-line-soft bg-white text-ink shadow-card transition-colors hover:border-accent hover:text-accent md:flex"
-        >
-          <ChevronLeftIcon />
-        </button>
-        <button
-          type="button"
-          onClick={() => step(1)}
-          aria-label={t.paginationNext}
-          className="absolute top-[calc(4px+(100cqw-3*22px)/8)] -right-[18px] z-10 -translate-y-1/2 lg:top-[calc(4px+(100cqw-4*22px)/10)] hidden size-9 cursor-pointer items-center justify-center rounded-full border border-line-soft bg-white text-ink shadow-card transition-colors hover:border-accent hover:text-accent md:flex"
-        >
-          <ChevronRightIcon />
-        </button>
+        {/* Nothing off-screen means nothing to slide to: hide the arrows. */}
+        {canScroll ? (
+          <>
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              aria-label={t.paginationPrev}
+              className="absolute top-[calc(4px+(100cqw-3*22px)/8)] -left-[18px] z-10 -translate-y-1/2 lg:top-[calc(4px+(100cqw-4*22px)/10)] hidden size-9 cursor-pointer items-center justify-center rounded-full border border-line-soft bg-white text-ink shadow-card transition-colors hover:border-accent hover:text-accent md:flex"
+            >
+              <ChevronLeftIcon />
+            </button>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              aria-label={t.paginationNext}
+              className="absolute top-[calc(4px+(100cqw-3*22px)/8)] -right-[18px] z-10 -translate-y-1/2 lg:top-[calc(4px+(100cqw-4*22px)/10)] hidden size-9 cursor-pointer items-center justify-center rounded-full border border-line-soft bg-white text-ink shadow-card transition-colors hover:border-accent hover:text-accent md:flex"
+            >
+              <ChevronRightIcon />
+            </button>
+          </>
+        ) : null}
       </div>
     </RevealSection>
   );

@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type MouseEvent, type PointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 
 /**
  * A carousel driven by the browser's own horizontal scrolling, rather than by
@@ -19,6 +26,12 @@ const AUTOPLAY_MS = 4500;
 
 export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
   const ref = useRef<T>(null);
+  // Whether the cards overflow the track. When every card already fits on one
+  // row there is nothing to slide to, so arrows, autoplay and drag would only
+  // suggest content that doesn't exist. Measured, not derived from the item
+  // count, because how many cards fit is a CSS breakpoint question (5 fit at
+  // `lg`, only 4 at `md`).
+  const [canScroll, setCanScroll] = useState(false);
   // A ref, not state: pausing must not re-render the card list underneath.
   const paused = useRef(false);
   const momentumFrame = useRef<number | null>(null);
@@ -83,6 +96,23 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
 
   useEffect(() => stopMomentum, [stopMomentum]);
 
+  useEffect(() => {
+    const track = ref.current;
+    if (!track) return;
+
+    // 1px tolerance: sub-pixel card widths can leave scrollWidth a hair above
+    // clientWidth even when everything visibly fits.
+    const measure = () => setCanScroll(track.scrollWidth - track.clientWidth > 1);
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(track);
+    // Cards too: at a breakpoint their % width can change while the track
+    // itself keeps the same size.
+    for (const card of track.children) observer.observe(card);
+    return () => observer.disconnect();
+  }, [itemCount]);
+
   const step = useCallback((direction: 1 | -1) => {
     stopMomentum();
     const track = ref.current;
@@ -112,7 +142,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
   }, [stopMomentum]);
 
   useEffect(() => {
-    if (itemCount <= 1) return;
+    if (!canScroll) return;
     // Honour the same preference the CSS reveal animations do.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -121,7 +151,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     }, AUTOPLAY_MS);
 
     return () => clearInterval(timer);
-  }, [itemCount, step]);
+  }, [canScroll, step]);
 
   const onPointerDown = useCallback((event: PointerEvent<T>) => {
     // Mobile browsers have compositor-driven scrolling with proper kinetic
@@ -130,7 +160,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
     if (event.pointerType !== "mouse" || event.button !== 0) return;
 
     const track = ref.current;
-    if (!track) return;
+    if (!track || track.scrollWidth - track.clientWidth <= 1) return;
 
     stopMomentum();
     pause();
@@ -217,6 +247,7 @@ export function useScrollCarousel<T extends HTMLElement>(itemCount: number) {
 
   return {
     ref,
+    canScroll,
     step,
     pause,
     resume,
