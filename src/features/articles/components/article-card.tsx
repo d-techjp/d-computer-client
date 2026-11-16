@@ -1,20 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { Locale } from "@/i18n/config";
 import { formatDate } from "@/lib/format/date";
 
 import { articleImage, type ArticleSummary } from "../types";
 
-export function ArticleCard({ article, locale }: { article: ArticleSummary; locale: Locale }) {
+export function ArticleCard({ article }: { article: ArticleSummary }) {
   const meta = [
-    article.publishedAt ? formatDate(article.publishedAt, locale) : null,
+    article.publishedAt ? formatDate(article.publishedAt) : null,
     article.category?.name ?? article.tags[0] ?? null,
   ].filter((value): value is string => Boolean(value));
 
   return (
     <Link
-      href={`/${locale}/articles/${article.slug}`}
+      href={`/articles/${article.slug}`}
       className="group rounded-2xl bg-white p-3 shadow-card transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-card-hover"
     >
       <div className="relative mb-3.5 aspect-4/3 overflow-hidden rounded-[10px]">

@@ -30,7 +30,7 @@ function classify(session: StripeSessionStatus): Exclude<ResultState["kind"], "l
 }
 
 export function StripePaymentResult({ sessionId }: { sessionId: string | null }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { discard } = useCartActions();
   const [state, setState] = useState<ResultState>(
     sessionId ? { kind: "loading" } : { kind: "error" },
@@ -81,7 +81,7 @@ export function StripePaymentResult({ sessionId }: { sessionId: string | null })
   if (state.kind === "error") {
     return (
       <ResultFrame title={t.checkoutPaymentFailedTitle} description={t.checkoutPaymentCheckError}>
-        <Link href={`/${locale}/checkout`} className={buttonVariants({ size: "md" })}>
+        <Link href={`/checkout`} className={buttonVariants({ size: "md" })}>
           {t.checkoutBackToCheckout}
         </Link>
       </ResultFrame>
@@ -103,7 +103,7 @@ export function StripePaymentResult({ sessionId }: { sessionId: string | null })
           {t.checkoutSaveOrderCode}
         </p>
         <Link
-          href={`/${locale}`}
+          href={"/"}
           className="text-[13.5px] font-bold text-ink-body underline decoration-1 underline-offset-4 transition-colors hover:text-accent"
         >
           {t.checkoutBackToHome}
@@ -120,7 +120,7 @@ export function StripePaymentResult({ sessionId }: { sessionId: string | null })
       }
     >
       <OrderSummary session={session} />
-      <Link href={`/${locale}/checkout`} className={buttonVariants({ size: "md" })}>
+      <Link href={`/checkout`} className={buttonVariants({ size: "md" })}>
         {t.checkoutBackToCheckout}
       </Link>
     </ResultFrame>

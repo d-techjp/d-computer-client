@@ -35,7 +35,7 @@ export function CategoryMenu({
   categories: CategoryNode[];
   compact?: boolean;
 }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
 
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -116,7 +116,7 @@ export function CategoryMenu({
               return (
                 <li key={category.id}>
                   <Link
-                    href={categoryHref(locale, category.slug)}
+                    href={categoryHref(category.slug)}
                     onMouseEnter={() => setActiveId(category.id)}
                     onFocus={() => setActiveId(category.id)}
                     className={cn(
@@ -143,7 +143,7 @@ export function CategoryMenu({
 
             <li className="mt-1 border-t border-line-soft px-4 pt-2.5 pb-1">
               <Link
-                href={`/${locale}/products`}
+                href={`/products`}
                 className="text-[12.5px] font-bold text-accent underline-offset-4 hover:underline"
               >
                 {t.categoryRailAll} <span aria-hidden>→</span>
@@ -170,7 +170,7 @@ export function CategoryMenu({
  * shallow branches rendering as a wall of lonely headings.
  */
 function MegaPanel({ category }: { category: CategoryNode }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
 
   const groups = category.children.filter((child) => child.children.length > 0);
   const loose = category.children.filter((child) => child.children.length === 0);
@@ -189,7 +189,7 @@ function MegaPanel({ category }: { category: CategoryNode }) {
         {loose.length > 0 ? (
           <MegaColumn
             heading={category.name}
-            headingHref={categoryHref(locale, category.slug)}
+            headingHref={categoryHref(category.slug)}
             items={loose}
           />
         ) : null}
@@ -198,14 +198,14 @@ function MegaPanel({ category }: { category: CategoryNode }) {
           <MegaColumn
             key={group.id}
             heading={group.name}
-            headingHref={categoryHref(locale, group.slug)}
+            headingHref={categoryHref(group.slug)}
             items={group.children}
           />
         ))}
       </div>
 
       <Link
-        href={categoryHref(locale, category.slug)}
+        href={categoryHref(category.slug)}
         className="mt-5 inline-block border-t border-line-soft pt-4 text-[12.5px] font-bold text-accent underline-offset-4 hover:underline"
       >
         {t.categoryMenuViewAll.replace("{name}", category.name)} <span aria-hidden>→</span>
@@ -245,14 +245,13 @@ function MegaColumn({
  * being silently dropped from the menu.
  */
 function MegaList({ items }: { items: CategoryNode[] }) {
-  const { locale } = useI18n();
 
   return (
     <ul className="flex flex-col gap-0.5">
       {items.map((item) => (
         <li key={item.id}>
           <Link
-            href={categoryHref(locale, item.slug)}
+            href={categoryHref(item.slug)}
             className="block truncate rounded py-1 text-[13px] text-ink-body transition-colors hover:text-accent"
           >
             {item.name}

@@ -8,12 +8,12 @@ import { GoogleSignInButton, googleSignInEnabled } from "./google-sign-in-button
 
 /** Google button plus the "or" divider; renders nothing when Google is not configured. */
 export function AuthSocial({ onCredential }: { onCredential: (idToken: string) => void }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   if (!googleSignInEnabled) return null;
 
   return (
     <>
-      <GoogleSignInButton locale={locale} onCredential={onCredential} />
+      <GoogleSignInButton onCredential={onCredential} />
       <div className="my-5 flex items-center gap-3 text-[12px] text-ink-faint" aria-hidden>
         <span className="h-px flex-1 bg-line" />
         {t.authOr}

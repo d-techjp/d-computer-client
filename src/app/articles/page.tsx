@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { ArticleListBrowser } from "@/features/articles/components/article-list-browser";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listArticles } from "@/server/services/article.service";
 
@@ -12,20 +10,18 @@ import { listArticles } from "@/server/services/article.service";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string }>;
 };
 
-export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
-  const [{ locale }, { page }] = await Promise.all([params, searchParams]);
-  if (!isLocale(locale)) return {};
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const { page } = await searchParams;
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
 
   return {
     title: t.articlesTitle,
     description: t.articlesDesc,
-    alternates: { canonical: `/${locale}/articles` },
+    alternates: { canonical: `/articles` },
     ...(page && page !== "1" ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -35,18 +31,17 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
  * `searchParams` — the first paint already shows the right page, no client
  * fetch or spinner.
  */
-export default async function ArticlesPage({ params, searchParams }: PageProps) {
-  const [{ locale }, { page: pageParam }] = await Promise.all([params, searchParams]);
-  if (!isLocale(locale)) notFound();
+export default async function ArticlesPage({ searchParams }: PageProps) {
+  const { page: pageParam } = await searchParams;
 
   const page = Number(pageParam);
   const listing = await listArticles({ page: Number.isInteger(page) && page > 0 ? page : 1 });
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
 
   return (
     <div className="shell py-8 md:py-10">
       <nav aria-label="Breadcrumb" className="mb-4 text-[12.5px] text-ink-muted">
-        <Link href={`/${locale}`} className="transition-colors hover:text-accent">
+        <Link href={"/"} className="transition-colors hover:text-accent">
           {t.navItems[0]}
         </Link>
         <span className="mx-2 text-ink-faint" aria-hidden>
@@ -65,7 +60,7 @@ export default async function ArticlesPage({ params, searchParams }: PageProps) 
       </header>
 
       {listing.articles.length > 0 ? (
-        <ArticleListBrowser listing={listing} locale={locale} />
+        <ArticleListBrowser listing={listing} />
       ) : (
         <div className="rounded-2xl border border-dashed border-line-strong px-6 py-16 text-center">
           <p className="mb-2 text-base font-bold">{t.articlesEmptyTitle}</p>

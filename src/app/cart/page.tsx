@@ -1,40 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { CartPageView } from "@/features/cart/components/cart-page-view";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getSiteSettings } from "@/server/services/site-settings.service";
 
-type PageProps = {
-  params: Promise<{ locale: string }>;
-};
-
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isLocale(locale)) return {};
+export async function generateMetadata(): Promise<Metadata> {
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
   return {
     title: t.cartTitle,
     robots: { index: false, follow: false },
   };
 }
 
-export default async function CartPage({ params }: PageProps) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+export default async function CartPage() {
 
-  const [t, siteSettings] = await Promise.all([getDictionary(locale), getSiteSettings()]);
+  const [t, siteSettings] = await Promise.all([getDictionary(), getSiteSettings()]);
 
   return (
     <div className="min-h-[60vh] bg-white">
       <div className="shell py-7 md:py-10 lg:py-12">
         <nav aria-label="Breadcrumb" className="mb-5 text-[12.5px] text-ink-muted md:mb-7">
-          <Link href={`/${locale}`} className="transition-colors hover:text-accent">
+          <Link href={"/"} className="transition-colors hover:text-accent">
             {t.navItems[0]}
           </Link>
           <span className="mx-2 text-ink-faint" aria-hidden>

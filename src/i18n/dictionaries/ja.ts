@@ -56,6 +56,7 @@ const ja = {
   tiktokVideoDescription: "D-TECHの高性能PCと最新情報をご紹介します。",
   tiktokWatchOnTikTok: "TikTokで見る",
   tiktokNextVideos: "次の動画を見る",
+  tokushohoTitle: "特定商取引法に基づく表記",
   copyright: "© 2026 ディーテック株式会社 All Rights Reserved.",
   cartTitle: "カート",
   cartItemsUnit: "点",

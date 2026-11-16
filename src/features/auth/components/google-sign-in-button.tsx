@@ -26,13 +26,7 @@ export const googleSignInEnabled = Boolean(CLIENT_ID);
  * branding rules). It returns an ID token, which the backend verifies against
  * our client ID — the storefront never handles a Google password or OAuth code.
  */
-export function GoogleSignInButton({
-  locale,
-  onCredential,
-}: {
-  locale: string;
-  onCredential: (idToken: string) => void;
-}) {
+export function GoogleSignInButton({ onCredential }: { onCredential: (idToken: string) => void }) {
   const status = useExternalScript(CLIENT_ID ? SCRIPT_SRC : null);
   const containerRef = useRef<HTMLDivElement>(null);
   // GIS keeps the first callback it is given; route through a ref so it always
@@ -62,10 +56,10 @@ export function GoogleSignInButton({
       size: "large",
       text: "continue_with",
       shape: "rectangular",
-      locale,
+      locale: "ja",
       width: Math.min(container.offsetWidth || 360, 400),
     });
-  }, [locale, status]);
+  }, [status]);
 
   if (!CLIENT_ID) return null;
   return <div ref={containerRef} className="flex min-h-11 w-full justify-center" />;

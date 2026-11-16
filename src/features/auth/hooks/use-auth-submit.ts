@@ -21,11 +21,11 @@ type Flow = "login" | "register" | "google";
  * frame both see the stale `pending === false`, but only one passes the ref.
  */
 export function useAuthSubmit(next: string | null) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const router = useRouter();
   const { setUser } = useAuthActions();
   const showToast = useUiStore((state) => state.showToast);
-  const turnstile = useTurnstile(locale);
+  const turnstile = useTurnstile();
 
   const inFlight = useRef(false);
   const [pending, setPending] = useState(false);
@@ -48,7 +48,7 @@ export function useAuthSubmit(next: string | null) {
       showToast(t.authWelcome.replace("{name}", user.fullName));
       // `pending` stays on: the page is about to change and the form must not
       // accept another submit in the meantime.
-      router.replace(safeNextPath(next, locale));
+      router.replace(safeNextPath(next));
     } catch (cause) {
       setError(authErrorMessage(cause, flow, t.authErrors));
       inFlight.current = false;

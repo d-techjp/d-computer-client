@@ -1,4 +1,3 @@
-import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 import type { Product } from "../types";
@@ -11,11 +10,9 @@ import { ProductCard } from "./product-card";
  */
 export function ProductGrid({
   products,
-  locale,
   t,
 }: {
   products: Product[];
-  locale: Locale;
   t: Dictionary;
 }) {
   return (
@@ -24,7 +21,7 @@ export function ProductGrid({
         <ProductCard
           key={product.slug}
           product={product}
-          locale={locale}
+         
           t={t}
           priority={index < 3}
           chips={[product.category?.name, product.brand?.name].filter((value): value is string =>

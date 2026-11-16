@@ -101,7 +101,7 @@ export const checkoutPreviewSchema = z.object({
 });
 
 export const checkoutEmailSchema = z.string().trim().email().max(255);
-export const checkoutLocaleSchema = z.enum(["ja", "vi"]);
+export const checkoutLocaleSchema = z.enum(["ja"]);
 
 export const placeOrderRequestSchema = z.object({
   cartId: z.string().uuid(),

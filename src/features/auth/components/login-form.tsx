@@ -13,7 +13,7 @@ import { AuthCaptchaAndError, AuthSocial } from "./auth-form-parts";
 import { AuthField } from "./auth-field";
 
 export function LoginForm({ next }: { next: string | null }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { turnstile, pending, error, run, canSubmit } = useAuthSubmit(next);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +24,7 @@ export function LoginForm({ next }: { next: string | null }) {
     void run("login", (captchaToken) => login({ username, password, captchaToken }));
   };
 
-  const registerHref = `/${locale}/register${next ? `?next=${encodeURIComponent(next)}` : ""}`;
+  const registerHref = `/register${next ? `?next=${encodeURIComponent(next)}` : ""}`;
 
   return (
     <>

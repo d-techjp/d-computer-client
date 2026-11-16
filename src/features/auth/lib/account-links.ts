@@ -6,7 +6,7 @@ export const ACCOUNT_LINKS = [
 ] as const;
 
 /** Where "sign in" should return to: the current page, unless that page is an auth page. */
-export function loginHref(locale: string, pathname: string | null): string {
-  const here = pathname && !/\/(login|register)$/.test(pathname) ? pathname : null;
-  return `/${locale}/login${here ? `?next=${encodeURIComponent(here)}` : ""}`;
+export function loginHref(pathname: string | null): string {
+  const here = pathname && !/^\/(login|register)$/.test(pathname) ? pathname : null;
+  return `/login${here ? `?next=${encodeURIComponent(here)}` : ""}`;
 }

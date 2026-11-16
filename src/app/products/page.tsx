@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { ProductBrowser } from "@/features/products/components/product-browser";
 import { CategoryRail } from "@/features/products/components/category-rail";
@@ -11,7 +10,6 @@ import {
   parseProductQuery,
   type RawSearchParams,
 } from "@/features/products/filters";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listCategories, listBrands } from "@/server/services/catalog.service";
 import { listProductPage } from "@/server/services/product.service";
@@ -22,18 +20,13 @@ import { getSiteSettings } from "@/server/services/site-settings.service";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: Promise<{ locale: string }>;
   searchParams: Promise<RawSearchParams>;
 };
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: PageProps): Promise<Metadata> {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
-  if (!isLocale(locale)) return {};
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const rawSearchParams = await searchParams;
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
   const query = parseProductQuery(rawSearchParams);
 
   // Every filter combination is a distinct URL over the same catalogue. The
@@ -46,7 +39,7 @@ export async function generateMetadata({
   return {
     title: t.listTitle,
     description: t.listDesc,
-    alternates: { canonical: `/${locale}/products` },
+    alternates: { canonical: `/products` },
     ...(isFiltered ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -57,14 +50,13 @@ export async function generateMetadata({
  * filtered, sorted, paginated result — no client fetch, no spinner, and a
  * shared link renders exactly what the sender saw.
  */
-export default async function ProductsPage({ params, searchParams }: PageProps) {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
-  if (!isLocale(locale)) notFound();
+export default async function ProductsPage({ searchParams }: PageProps) {
+  const rawSearchParams = await searchParams;
 
   const query = parseProductQuery(rawSearchParams);
 
   const [t, listing, categories, brands, siteSettings] = await Promise.all([
-    getDictionary(locale),
+    getDictionary(),
     listProductPage(query),
     listCategories(),
     listBrands(),
@@ -80,7 +72,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
   return (
     <div className="shell py-8 md:py-10">
       <nav aria-label="Breadcrumb" className="mb-4 text-[12.5px] text-ink-muted">
-        <Link href={`/${locale}`} className="transition-colors hover:text-accent">
+        <Link href={"/"} className="transition-colors hover:text-accent">
           {t.navItems[0]}
         </Link>
         <span className="mx-2 text-ink-faint" aria-hidden>
@@ -98,7 +90,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
         </h1>
       </header>
 
-      <CategoryRail categories={categoryRail} locale={locale} />
+      <CategoryRail categories={categoryRail} />
 
       <ProductBrowser
         query={query}
@@ -108,7 +100,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
         totalPages={listing.totalPages}
       >
         {listing.products.length > 0 ? (
-          <ProductGrid products={listing.products} locale={locale} t={t} />
+          <ProductGrid products={listing.products} t={t} />
         ) : (
           <div className="rounded-2xl border border-dashed border-line-strong px-6 py-16 text-center">
             <p className="mb-2 text-base font-bold">{t.listEmptyTitle}</p>

@@ -13,7 +13,7 @@ import { useAuthActions, useAuthStatus, useAuthUser } from "../store/auth.store"
 
 /** The account block at the bottom of the mobile drawer. */
 export function MobileAccountLinks({ onNavigate }: { onNavigate: () => void }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
   const status = useAuthStatus();
@@ -30,7 +30,7 @@ export function MobileAccountLinks({ onNavigate }: { onNavigate: () => void }) {
 
   if (status !== "authenticated" || !user) {
     return (
-      <Link href={loginHref(locale, pathname)} onClick={onNavigate} className={`${linkClass} mb-4`}>
+      <Link href={loginHref(pathname)} onClick={onNavigate} className={`${linkClass} mb-4`}>
         <UserIcon />
         {t.login}
       </Link>
@@ -46,7 +46,7 @@ export function MobileAccountLinks({ onNavigate }: { onNavigate: () => void }) {
       {ACCOUNT_LINKS.map((link) => (
         <Link
           key={link.key}
-          href={`/${locale}${link.path}`}
+          href={link.path}
           onClick={onNavigate}
           className="py-1.5 pl-7 text-[13.5px] text-ink-body transition-colors hover:text-accent"
         >

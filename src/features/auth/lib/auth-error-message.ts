@@ -6,7 +6,7 @@ type Flow = "login" | "register" | "google";
 
 /**
  * Backend messages are Vietnamese and meant for logs, so the storefront maps
- * status codes to its own ja/vi copy. The two 400s and 401s that need telling
+ * status codes to its own Japanese copy. The two 400s and 401s that need telling
  * apart are distinguished by a stable fragment of the backend message.
  */
 export function authErrorMessage(cause: unknown, flow: Flow, errors: AuthErrors): string {
@@ -32,10 +32,10 @@ export function authErrorMessage(cause: unknown, flow: Flow, errors: AuthErrors)
   }
 }
 
-/** Only same-site, same-locale paths: `?next=//evil.com` must not become an open redirect. */
-export function safeNextPath(next: string | null | undefined, locale: string): string {
-  const fallback = `/${locale}`;
-  if (!next || !next.startsWith(`/${locale}`) || next.startsWith("//")) return fallback;
-  if (next.includes("\\") || /^\/[^/]+\/(login|register)\b/.test(next)) return fallback;
+/** Only same-site paths: `?next=//evil.com` must not become an open redirect. */
+export function safeNextPath(next: string | null | undefined): string {
+  const fallback = "/";
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
+  if (next.includes("\\") || /^\/(login|register)\b/.test(next)) return fallback;
   return next;
 }

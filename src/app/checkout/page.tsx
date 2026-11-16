@@ -1,43 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { CheckoutFlow } from "@/features/checkout/components/checkout-flow";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 type PageProps = {
-  params: Promise<{ locale: string }>;
   searchParams?: Promise<{ payment?: string | string[] }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isLocale(locale)) return {};
+export async function generateMetadata(): Promise<Metadata> {
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
   return {
     title: t.checkoutTitle,
     robots: { index: false, follow: false },
   };
 }
 
-export default async function CheckoutPage({ params, searchParams }: PageProps) {
-  const { locale } = await params;
+export default async function CheckoutPage({ searchParams }: PageProps) {
   // Stripe sends the customer back here with `?payment=cancelled` when they
   // leave its payment page without paying.
   const paymentCancelled = (await searchParams)?.payment === "cancelled";
-  if (!isLocale(locale)) notFound();
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
 
   return (
     <div className="min-h-[60vh] bg-white">
       <div className="shell py-7 md:py-10 lg:py-12">
         <nav aria-label="Breadcrumb" className="mb-5 text-[12.5px] text-ink-muted md:mb-7">
-          <Link href={`/${locale}`} className="transition-colors hover:text-accent">
+          <Link href={"/"} className="transition-colors hover:text-accent">
             {t.navItems[0]}
           </Link>
           <span className="mx-2 text-ink-faint" aria-hidden>

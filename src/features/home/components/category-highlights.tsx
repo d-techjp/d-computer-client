@@ -31,11 +31,11 @@ type Card = {
  * yet, instead of rendering a blank row.
  */
 export function CategoryHighlights({ categories }: { categories: CategoryNode[] }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
 
   const cards: Card[] = categories.slice(0, MAX_CARDS).map((category, index) => ({
     key: category.id,
-    href: categoryHref(locale, category.slug),
+    href: categoryHref(category.slug),
     title: category.name,
     sub:
       category.description ||
@@ -52,7 +52,7 @@ export function CategoryHighlights({ categories }: { categories: CategoryNode[] 
   if (cards.length < MAX_CARDS) {
     cards.push({
       key: "all",
-      href: `/${locale}/products`,
+      href: `/products`,
       title: t.categoryRailAll,
       sub: t.categoryCardAllSub,
       Icon: SlidersIcon,

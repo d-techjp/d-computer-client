@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { MapPinIcon, PhoneIcon } from "@/components/ui/icons";
-import type { Locale } from "@/i18n/config";
 import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
 import { useReveal } from "@/hooks/use-reveal";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -12,14 +11,14 @@ const FOOTER_LINK_CLASS = "opacity-85 transition hover:text-accent hover:opacity
 
 /** `""` = no destination page yet, falls back to the storefront home. An absolute
  * URL is used as-is (external); anything else is a storefront-relative path. */
-function resolveFooterLinkHref(locale: Locale, url: string): string {
-  if (!url) return `/${locale}`;
+function resolveFooterLinkHref(url: string): string {
+  if (!url) return "/";
   if (/^https?:\/\//i.test(url)) return url;
-  return `/${locale}${url}`;
+  return url.startsWith("/") ? url : `/${url}`;
 }
 
 export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { ref, revealed } = useReveal<HTMLElement>();
 
   return (
@@ -82,7 +81,7 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
                   ) : (
                     <Link
                       key={link.id}
-                      href={resolveFooterLinkHref(locale, link.url)}
+                      href={resolveFooterLinkHref(link.url)}
                       className={FOOTER_LINK_CLASS}
                     >
                       {link.label}
@@ -97,6 +96,11 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
 
       <div className="shell flex flex-wrap items-center justify-between gap-2.5 border-t border-line-invert py-5 text-xs">
         <span>{t.copyright}</span>
+        {/* Hard-coded, not an admin footer link: payment providers (PayPay,
+            card networks) require this notice to be reachable from every page. */}
+        <Link href={`/tokushoho`} className={FOOTER_LINK_CLASS}>
+          {t.tokushohoTitle}
+        </Link>
       </div>
     </footer>
   );

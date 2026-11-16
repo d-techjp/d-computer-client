@@ -4,12 +4,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { articleImage } from "@/features/articles/types";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { formatDate } from "@/lib/format/date";
 import { getArticleBySlug } from "@/server/services/article.service";
 
-type PageProps = { params: Promise<{ locale: string; slug: string }> };
+type PageProps = { params: Promise<{ slug: string }> };
 
 /**
  * View counts and publish state change server-side, so — like the product
@@ -18,8 +17,7 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
  */
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale, slug } = await params;
-  if (!isLocale(locale)) return {};
+  const { slug } = await params;
 
   const article = await getArticleBySlug(slug);
   if (!article) return {};
@@ -29,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: article.metaTitle ?? article.title,
     description,
-    alternates: { canonical: `/${locale}/articles/${slug}` },
+    alternates: { canonical: `/articles/${slug}` },
     openGraph: {
       title: article.title,
       description,
@@ -41,15 +39,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ArticlePage({ params }: PageProps) {
-  const { locale, slug } = await params;
-  if (!isLocale(locale)) notFound();
+  const { slug } = await params;
 
-  const [t, article] = await Promise.all([getDictionary(locale), getArticleBySlug(slug)]);
+  const [t, article] = await Promise.all([getDictionary(), getArticleBySlug(slug)]);
 
   if (!article) notFound();
 
   const meta = [
-    article.publishedAt ? formatDate(article.publishedAt, locale) : null,
+    article.publishedAt ? formatDate(article.publishedAt) : null,
     article.category?.name ?? null,
     article.author?.fullName ?? null,
   ].filter((value): value is string => Boolean(value));
@@ -57,7 +54,7 @@ export default async function ArticlePage({ params }: PageProps) {
   return (
     <article className="shell max-w-[760px] py-8 md:py-10">
       <Link
-        href={`/${locale}/articles`}
+        href={`/articles`}
         className="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-muted transition-colors hover:text-accent"
       >
         ← {t.articleBack}

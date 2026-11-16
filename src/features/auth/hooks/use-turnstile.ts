@@ -25,7 +25,7 @@ declare global {
  * a fresh one — the submit button stays disabled until that arrives, which is
  * also what stops a held-down Enter key from firing a burst of sign-ups.
  */
-export function useTurnstile(locale: string) {
+export function useTurnstile() {
   const status = useExternalScript(SITE_KEY ? SCRIPT_SRC : null);
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
@@ -46,7 +46,7 @@ export function useTurnstile(locale: string) {
 
     const id = window.turnstile.render(container, {
       sitekey: SITE_KEY,
-      language: locale,
+      language: "ja",
       callback: (value: string) => {
         setFailed(false);
         updateToken(value);
@@ -63,7 +63,7 @@ export function useTurnstile(locale: string) {
       window.turnstile?.remove(id);
       widgetId.current = null;
     };
-  }, [locale, status, updateToken]);
+  }, [status, updateToken]);
 
   /** Reads the latest token (also from inside third-party callbacks) and spends it. */
   const consume = useCallback((): string | null => {

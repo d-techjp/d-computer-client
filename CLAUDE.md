@@ -1,6 +1,7 @@
 # d-computer-client (storefront)
 
-Online store for D-Tech (computers / electronics, Japan). Bilingual: **ja (default) / vi**.
+Online store for D-Tech (computers / electronics, Japan). **Japanese only**, no locale prefix in URLs
+(`/products`, `/cart`…). Old `/ja/*` and `/vi/*` URLs are 301-redirected by `proxy.ts`.
 Data comes from the NestJS backend `../d-computer-service`. The admin back-office is `../d-computer-admin-client`.
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Zustand 5 · Axios · Zod 4 · CVA.
@@ -8,7 +9,7 @@ Data comes from the NestJS backend `../d-computer-service`. The admin back-offic
 ## Commands
 
 ```bash
-npm run dev        # :3000, `/` redirects to /ja or /vi
+npm run dev        # :3000
 npm run lint && npx tsc --noEmit && npm run build   # run before reporting done
 ```
 
@@ -19,7 +20,7 @@ is `../d-computer-service/openapi/openapi.client.yaml`; the copies in this repo'
 
 ```
 src/
-├── app/[locale]/        # routing + composition. page.tsx is a Server Component calling server/services
+├── app/                 # routing + composition. page.tsx is a Server Component calling server/services
 ├── app/api/**/route.ts  # BFF: validate (zod) → backendFetch → parse schema → return JSON
 ├── features/<feature>/  # articles, cart, catalog, checkout, home, layout, products, search
 │   ├── api/             # *.schema.ts (zod, shared server+client), *.repository.ts (browser → /api)
@@ -28,9 +29,9 @@ src/
 ├── lib/api/             # client.ts = the ONLY axios instance, errors.ts (ApiError), envelope.ts
 ├── lib/format/          # currency, date, interpolate
 ├── components/ui/       # primitives: Button (CVA), icons, pagination, quantity-stepper
-├── i18n/                # config, dictionaries/{ja,vi}.ts, get-dictionary (server-only), provider
+├── i18n/                # dictionaries/ja.ts (all copy), get-dictionary (server-only), provider
 ├── hooks/               # shared hooks
-└── proxy.ts             # Next 16 middleware: picks locale from Accept-Language
+└── proxy.ts             # Next 16 middleware: 301s legacy /ja/* and /vi/* URLs
 ```
 
 **Two data paths:**
@@ -49,7 +50,7 @@ itself; in dev the `/api/auth/*` + `/api/users/me` route handlers do the same an
 **Main flows:** the cart lives on the backend (`cartId` is persisted in `cart.store`, with
 `skipHydration` + rehydrate in an effect). Checkout (`checkout-flow.tsx`): COD creates the order
 immediately; Stripe creates a session → redirects to Stripe → returns to
-`/[locale]/checkout/success?session_id=` → `stripe-payment-result.tsx` syncs the session. A cancelled
+`/checkout/success?session_id=` → `stripe-payment-result.tsx` syncs the session. A cancelled
 payment returns to `?payment=cancelled`. Prices are JPY integers, tax included.
 
 ## Rules

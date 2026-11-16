@@ -1,3 +1,4 @@
+import type { Locale } from "@/i18n/config";
 import { apiClient } from "@/lib/api/client";
 
 import {
@@ -67,7 +68,7 @@ export async function placeOrder(input: {
   cartId: string;
   shippingAddress: ShippingAddress;
   email: string;
-  locale: "ja" | "vi";
+  locale: Locale;
   paymentMethod: PaymentMethod;
   note?: string;
 }): Promise<CheckoutOrder> {
@@ -80,7 +81,7 @@ export async function startStripeCheckout(input: {
   cartId: string;
   shippingAddress: ShippingAddress;
   email: string;
-  locale: "ja" | "vi";
+  locale: Locale;
   note?: string;
 }): Promise<StripeCheckoutResult> {
   const response = await apiClient.post("/checkout/stripe", input);

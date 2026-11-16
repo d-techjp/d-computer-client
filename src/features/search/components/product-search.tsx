@@ -23,7 +23,7 @@ import { useProductSearch } from "../hooks/use-product-search";
  * same `term` state and the same hook; only where the input is mounted changes.
  */
 export function ProductSearch() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const [term, setTerm] = useState("");
 
   const { status, results, enabled } = useProductSearch(term);
@@ -79,7 +79,7 @@ export function ProductSearch() {
               {results.map((product) => (
                 <li key={product.slug}>
                   <Link
-                    href={`/${locale}/products/${product.slug}`}
+                    href={`/products/${product.slug}`}
                     onClick={close}
                     className="flex items-center gap-3 border-b border-mist px-4 py-3 transition-colors last:border-b-0 hover:bg-mist-soft"
                   >

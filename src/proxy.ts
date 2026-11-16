@@ -1,44 +1,26 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { DEFAULT_LOCALE, LOCALES } from "@/i18n/config";
-
 /**
- * Locale negotiation at the edge. (`proxy.ts` is Next 16's name for what used
- * to be `middleware.ts`.)
+ * Legacy locale prefixes. (`proxy.ts` is Next 16's name for `middleware.ts`.)
  *
- * Every page lives under `/{locale}`, so a request to `/` or `/products/x` has
- * to be sent somewhere. The visitor's `Accept-Language` decides, falling back
- * to Japanese — matching the original page's default.
+ * The storefront used to live under `/ja/...` and `/vi/...`; it is now
+ * Japanese only at the bare path. Those old URLs are indexed by Google and
+ * sit in shared links, old order mails and Stripe return URLs, so each one is
+ * sent to its new home with a *permanent* redirect — that is what tells
+ * search engines to move the ranking over instead of dropping the page.
  */
-function resolveLocale(request: NextRequest): string {
-  const header = request.headers.get("accept-language") ?? "";
-
-  const preferred = header
-    .split(",")
-    .map((part) => {
-      const [tag, q] = part.trim().split(";q=");
-      return { tag: tag.split("-")[0].toLowerCase(), quality: q ? Number(q) : 1 };
-    })
-    .sort((a, b) => b.quality - a.quality);
-
-  return preferred.find((entry) => LOCALES.includes(entry.tag as never))?.tag ?? DEFAULT_LOCALE;
-}
+const LEGACY_PREFIX = /^\/(?:ja|vi)(?=\/|$)/;
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  const hasLocale = LOCALES.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
-  );
-  if (hasLocale) return NextResponse.next();
+  if (!LEGACY_PREFIX.test(pathname)) return NextResponse.next();
 
   const url = request.nextUrl.clone();
-  url.pathname = `/${resolveLocale(request)}${pathname === "/" ? "" : pathname}`;
-
-  return NextResponse.redirect(url);
+  url.pathname = pathname.replace(LEGACY_PREFIX, "") || "/";
+  return NextResponse.redirect(url, 301);
 }
 
 export const config = {
-  // Static assets and API routes are not locale-scoped and must not be rewritten.
-  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico|.*\\.).*)"],
+  // Only the legacy prefixes need the proxy; every other request skips it.
+  matcher: ["/ja", "/ja/:path*", "/vi", "/vi/:path*"],
 };

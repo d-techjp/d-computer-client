@@ -24,7 +24,7 @@ import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
 
 export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const hydrated = useCartHydrated();
   const lines = useCartLines();
   const count = useCartCount();
@@ -70,7 +70,7 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
             {t.cartRetry}
           </Button>
         ) : (
-          <Link href={`/${locale}/products`} className={buttonVariants({ size: "md" })}>
+          <Link href={`/products`} className={buttonVariants({ size: "md" })}>
             {t.cartPageViewProducts}
           </Link>
         )}
@@ -97,7 +97,7 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
               className="grid grid-cols-[76px_minmax(0,1fr)_auto] gap-x-3 gap-y-3 border-b border-line py-4 sm:grid-cols-[104px_minmax(0,1fr)_auto] sm:gap-x-5 sm:py-5 md:grid-cols-[112px_minmax(0,1fr)_120px_116px_36px] md:items-center"
             >
               <Link
-                href={`/${locale}/products/${line.slug}`}
+                href={`/products/${line.slug}`}
                 className="relative row-span-2 aspect-square overflow-hidden border border-line-soft bg-white sm:row-span-1"
               >
                 <Image
@@ -111,7 +111,7 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
 
               <div className="min-w-0 self-center">
                 <Link
-                  href={`/${locale}/products/${line.slug}`}
+                  href={`/products/${line.slug}`}
                   className="line-clamp-2 text-[14px] leading-5 font-bold transition-colors hover:text-accent sm:text-[15px] sm:leading-6"
                 >
                   {line.productName}
@@ -178,7 +178,7 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
         </ul>
 
         <Link
-          href={`/${locale}/products`}
+          href={`/products`}
           className="mt-5 inline-flex text-[13px] font-bold text-ink-muted transition-colors hover:text-accent"
         >
           {t.checkoutContinueShopping}
@@ -204,7 +204,7 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
             </Button>
           ) : (
             <Link
-              href={`/${locale}/checkout`}
+              href={`/checkout`}
               className={cn(
                 buttonVariants({ size: "block" }),
                 "min-h-12 px-2 text-center leading-5",

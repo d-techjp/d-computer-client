@@ -1,22 +1,14 @@
 import "server-only";
 
-import type { Locale } from "./config";
-import type ja from "./dictionaries/ja";
+import ja from "./dictionaries/ja";
 
 export type Dictionary = typeof ja;
 
 /**
- * Dictionaries are loaded through dynamic `import()` so only the requested
- * locale is ever pulled into the server bundle for a request — the standard
- * App Router i18n pattern. `server-only` makes accidentally importing this
- * from a Client Component a build error.
+ * Japanese is the only storefront language. Still an async server-only
+ * accessor so pages keep one way of reading copy, and `server-only` keeps the
+ * dictionary out of Client Component imports (they read it from context).
  */
-const loaders: Record<Locale, () => Promise<{ default: Dictionary }>> = {
-  ja: () => import("./dictionaries/ja"),
-  vi: () => import("./dictionaries/vi"),
-};
-
-export async function getDictionary(locale: Locale): Promise<Dictionary> {
-  const mod = await loaders[locale]();
-  return mod.default;
+export async function getDictionary(): Promise<Dictionary> {
+  return ja;
 }

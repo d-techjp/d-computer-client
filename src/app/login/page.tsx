@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { LoginForm } from "@/features/auth/components/login-form";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 // Rendered per request like the other pages: the layout reads categories and
@@ -11,23 +9,19 @@ import { getDictionary } from "@/i18n/get-dictionary";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: Promise<{ locale: string }>;
   searchParams: Promise<{ next?: string | string[] }>;
 };
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isLocale(locale)) return {};
+export async function generateMetadata(): Promise<Metadata> {
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
   return { title: t.authLoginTitle, robots: { index: false, follow: false } };
 }
 
-export default async function LoginPage({ params, searchParams }: PageProps) {
-  const [{ locale }, { next }] = await Promise.all([params, searchParams]);
-  if (!isLocale(locale)) notFound();
+export default async function LoginPage({ searchParams }: PageProps) {
+  const { next } = await searchParams;
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
   return (
     <AuthShell title={t.authLoginTitle} subtitle={t.authLoginSubtitle}>
       <LoginForm next={typeof next === "string" ? next : null} />

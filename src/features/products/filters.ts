@@ -138,8 +138,8 @@ export function toQueryString(query: ProductQuery): string {
  * Built through `toQueryString` so those links can never drift from the param
  * names the page parses. Takes the category's *slug*, not its id.
  */
-export function categoryHref(locale: string, categorySlug: string): string {
-  return `/${locale}/products${toQueryString({ ...EMPTY_QUERY, category: categorySlug })}`;
+export function categoryHref(categorySlug: string): string {
+  return `/products${toQueryString({ ...EMPTY_QUERY, category: categorySlug })}`;
 }
 
 /* ------------------------------- mutation -------------------------------- */

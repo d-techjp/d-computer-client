@@ -10,7 +10,6 @@ import type { CategoryNode } from "@/features/catalog/tree";
 import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
 import { ProductSearch } from "@/features/search/components/product-search";
 import { useCondensedHeader } from "@/hooks/use-condensed-header";
-import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { cn } from "@/lib/utils/cn";
 
@@ -39,12 +38,10 @@ import { MobileNav } from "./mobile-nav";
  */
 export function SiteHeader({
   t,
-  locale,
   categories,
   siteSettings,
 }: {
   t: Dictionary;
-  locale: Locale;
   categories: CategoryNode[];
   siteSettings: Pick<SiteSettings, "companyName" | "phone">;
 }) {
@@ -58,7 +55,7 @@ export function SiteHeader({
             catalogue and the left edge is where a thumb expects to find it. */}
         <MobileNav categories={categories} phone={siteSettings.phone} />
 
-        <Link href={`/${locale}`} className="flex min-w-0 flex-none items-center gap-2.5 md:gap-3.5">
+        <Link href={"/"} className="flex min-w-0 flex-none items-center gap-2.5 md:gap-3.5">
           {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}
           <img
             src="/logo-d-tech.png"
@@ -121,8 +118,8 @@ export function SiteHeader({
 
           <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 pl-5 text-[13px] font-medium">
             {t.navItems.map((item, index) => {
-              const href = navHref(locale, index);
-              const homeHref = `/${locale}`;
+              const href = navHref(index);
+              const homeHref = "/";
               const active =
                 index === 0
                   ? pathname === homeHref

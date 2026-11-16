@@ -5,18 +5,15 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { useI18n } from "@/i18n/i18n-provider";
 import { ProductCard } from "@/features/products/components/product-card";
 import type { Product } from "@/features/products/types";
-import type { Locale } from "@/i18n/config";
 
 import { useScrollCarousel } from "../hooks/use-scroll-carousel";
 import { RevealSection } from "./reveal-section";
 
 export function ProductCarouselTrack({
   products,
-  locale,
   title,
 }: {
   products: Product[];
-  locale: Locale;
   title: string;
 }) {
   const { t } = useI18n();
@@ -25,7 +22,7 @@ export function ProductCarouselTrack({
   return (
     // `data-home-carousel`: the hero's scroll arrow aims at the first of these.
     <RevealSection data-home-carousel="" className="shell py-7 md:py-9">
-      <SectionHeading title={title} action={t.viewAll} actionHref={`/${locale}/products`} />
+      <SectionHeading title={title} action={t.viewAll} actionHref={`/products`} />
 
       {/*
         Từ md trở lên mỗi lần hiện đúng 4 (md) / 5 (lg) card, bề rộng card tính
@@ -55,7 +52,7 @@ export function ProductCarouselTrack({
               key={product.slug}
               className="w-[78%] flex-none xs:w-[46%] md:w-[calc((100%-3*22px)/4)] lg:w-[calc((100%-4*22px)/5)]"
             >
-              <ProductCard product={product} locale={locale} t={t} priority={index < 2} />
+              <ProductCard product={product} t={t} priority={index < 2} />
             </li>
           ))}
         </ul>

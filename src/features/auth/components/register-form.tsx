@@ -16,7 +16,7 @@ import { AuthField } from "./auth-field";
 const EMPTY_FORM = { fullName: "", email: "", password: "", phone: "" };
 
 export function RegisterForm({ next }: { next: string | null }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { turnstile, pending, error, run, canSubmit } = useAuthSubmit(next);
   const [form, setForm] = useState(EMPTY_FORM);
   useRedirectIfSignedIn(next);
@@ -39,7 +39,7 @@ export function RegisterForm({ next }: { next: string | null }) {
     );
   };
 
-  const loginHref = `/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`;
+  const loginHref = `/login${next ? `?next=${encodeURIComponent(next)}` : ""}`;
 
   return (
     <>

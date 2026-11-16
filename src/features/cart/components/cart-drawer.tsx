@@ -28,7 +28,7 @@ import { CartLineItem } from "./cart-line-item";
  * stacking context, which would trap a `fixed` child under page content.
  */
 export function CartDrawer() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const close = useUiStore((state) => state.close);
   const notice = useUiStore((state) => state.cartNotice);
 
@@ -125,7 +125,7 @@ export function CartDrawer() {
               {/* With a blocked line the checkout page would only bounce the
                   shopper back, so send them to the cart where it can be fixed. */}
               <Link
-                href={blocked ? `/${locale}/cart` : `/${locale}/checkout`}
+                href={blocked ? `/cart` : `/checkout`}
                 onClick={close}
                 className={cn(buttonVariants({ size: "block" }), "mb-2.5")}
               >
@@ -133,7 +133,7 @@ export function CartDrawer() {
               </Link>
               <div className="grid grid-cols-2 gap-2.5">
                 <Link
-                  href={`/${locale}/cart`}
+                  href={`/cart`}
                   onClick={close}
                   className={buttonVariants({ variant: "outline", size: "sm" })}
                 >

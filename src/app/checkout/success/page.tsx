@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 import { StripePaymentResult } from "@/features/checkout/components/stripe-payment-result";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 type PageProps = {
-  params: Promise<{ locale: string }>;
   searchParams: Promise<{ session_id?: string | string[] }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isLocale(locale)) return {};
+export async function generateMetadata(): Promise<Metadata> {
 
-  const t = await getDictionary(locale);
+  const t = await getDictionary();
   return {
     title: t.checkoutTitle,
     robots: { index: false, follow: false },
@@ -24,9 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 /** Stripe Checkout returns here with `?session_id=cs_…` after the customer pays. */
-export default async function CheckoutSuccessPage({ params, searchParams }: PageProps) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
   const { session_id: sessionId } = await searchParams;
 

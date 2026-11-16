@@ -28,7 +28,7 @@ import { useIsPanelOpen, useUiStore } from "../store/ui.store";
  * tap the heading to browse the whole branch.
  */
 export function MobileNav({ categories, phone }: { categories: CategoryNode[]; phone: string }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const pathname = usePathname();
 
   const open = useIsPanelOpen("nav");
@@ -94,7 +94,7 @@ export function MobileNav({ categories, phone }: { categories: CategoryNode[]; p
               <CategoryBranch nodes={categories} onNavigate={close} />
 
               <Link
-                href={`/${locale}/products`}
+                href={`/products`}
                 onClick={close}
                 className="mt-1 rounded-lg px-3 py-3 text-[13px] font-bold text-accent transition-colors hover:bg-mist"
               >
@@ -140,13 +140,13 @@ function CategoryBranch({
   nodes: CategoryNode[];
   onNavigate: () => void;
 }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
 
   return nodes.map((node) =>
     node.children.length === 0 ? (
       <Link
         key={node.id}
-        href={categoryHref(locale, node.slug)}
+        href={categoryHref(node.slug)}
         onClick={onNavigate}
         className="truncate rounded-lg px-3 py-2.5 text-[13.5px] text-ink-body transition-colors hover:bg-mist hover:text-accent"
       >
@@ -166,7 +166,7 @@ function CategoryBranch({
             readable — indentation alone stops reading as hierarchy. */}
         <div className="ml-3 flex flex-col border-l border-line-soft pb-1 pl-2">
           <Link
-            href={categoryHref(locale, node.slug)}
+            href={categoryHref(node.slug)}
             onClick={onNavigate}
             className="rounded-lg px-3 py-2 text-[12.5px] font-bold text-accent transition-colors hover:bg-mist"
           >

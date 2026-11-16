@@ -91,7 +91,7 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
   if (!hydrated || (cartLoading && lines.length === 0)) return <CheckoutSkeleton />;
 
   if (createdOrder) {
-    return <CheckoutSuccessScreen order={createdOrder} locale={locale} />;
+    return <CheckoutSuccessScreen order={createdOrder} />;
   }
 
   if (!cartId || lines.length === 0) {
@@ -99,7 +99,7 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
       <section className="mx-auto max-w-2xl border border-line px-5 py-14 text-center md:py-18">
         <h2 className="mb-2 text-xl font-black">{t.checkoutEmptyTitle}</h2>
         <p className="mb-6 text-[13.5px] text-ink-muted">{t.checkoutEmptyDesc}</p>
-        <Link href={`/${locale}/cart`} className={buttonVariants({ size: "md" })}>
+        <Link href={`/cart`} className={buttonVariants({ size: "md" })}>
           {t.checkoutBackToCart}
         </Link>
       </section>
@@ -378,7 +378,7 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
           {step === "address" ? (
             <div className="hidden grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] gap-2.5 lg:grid">
               <Link
-                href={`/${locale}/cart`}
+                href={`/cart`}
                 className={cn(
                   buttonVariants({ variant: "outline", size: "block" }),
                   "min-h-12 px-2 text-center leading-5",
@@ -473,7 +473,7 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
   );
 }
 
-function CheckoutSuccessScreen({ order, locale }: { order: CheckoutOrder; locale: string }) {
+function CheckoutSuccessScreen({ order }: { order: CheckoutOrder }) {
   const { t } = useI18n();
 
   // Success replaces the checkout form as a full-screen takeover — the
@@ -511,7 +511,7 @@ function CheckoutSuccessScreen({ order, locale }: { order: CheckoutOrder; locale
         {t.checkoutSaveOrderCode}
       </p>
       <Link
-        href={`/${locale}`}
+        href={"/"}
         className="text-[13.5px] font-bold text-ink-body underline decoration-1 underline-offset-4 transition-colors hover:text-accent"
       >
         {t.checkoutBackToHome}

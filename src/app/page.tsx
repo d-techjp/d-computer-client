@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 
 import { BlogSection } from "@/features/home/components/blog-section";
 import { CustomPcSection } from "@/features/home/components/custom-pc-section";
@@ -6,7 +5,6 @@ import { Hero } from "@/features/home/components/hero";
 import { ProductCarousel } from "@/features/home/components/product-carousel";
 import { TrustBar } from "@/features/home/components/trust-bar";
 import { TikTokSection } from "@/features/home/components/tiktok-section";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { listArticles } from "@/server/services/article.service";
 import { listHomeCarousels } from "@/server/services/carousel.service";
@@ -25,17 +23,10 @@ const FEATURED_ARTICLES_LIMIT = 4;
  * pointless round trip through the network stack. The route handler exists for
  * the browser; the service exists for both.
  */
-export default async function HomePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
-
+export default async function HomePage() {
   // Independent reads run concurrently instead of serialising into a waterfall.
   const [t, articleListing, carousels, tiktokVideos, siteSettings] = await Promise.all([
-    getDictionary(locale),
+    getDictionary(),
     listArticles({ limit: FEATURED_ARTICLES_LIMIT }),
     listHomeCarousels(),
     listTiktokVideos(),
@@ -47,10 +38,10 @@ export default async function HomePage({
       <Hero />
       <TrustBar t={t} />
       {carousels.map((carousel) => (
-        <ProductCarousel key={carousel.id} carousel={carousel} locale={locale} />
+        <ProductCarousel key={carousel.id} carousel={carousel} />
       ))}
       <CustomPcSection t={t} />
-      <BlogSection articles={articleListing.articles} locale={locale} t={t} />
+      <BlogSection articles={articleListing.articles} t={t} />
       <TikTokSection
         t={t}
         videos={tiktokVideos}

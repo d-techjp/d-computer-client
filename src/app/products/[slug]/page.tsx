@@ -4,11 +4,10 @@ import { notFound } from "next/navigation";
 
 import { ProductDetail } from "@/features/products/components/product-detail";
 import { productImage, specRows } from "@/features/products/types";
-import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getProduct, getProductDescription } from "@/server/services/product.service";
 
-type PageProps = { params: Promise<{ locale: string; slug: string }> };
+type PageProps = { params: Promise<{ slug: string }> };
 
 /**
  * Stock and price change server-side, so this renders dynamically per
@@ -17,8 +16,7 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
  */
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale, slug } = await params;
-  if (!isLocale(locale)) return {};
+  const { slug } = await params;
 
   const product = await getProduct(slug);
   if (!product) return {};
@@ -28,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: product.name,
     description,
-    alternates: { canonical: `/${locale}/products/${slug}` },
+    alternates: { canonical: `/products/${slug}` },
     openGraph: {
       title: product.name,
       description,
@@ -39,10 +37,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductPage({ params }: PageProps) {
-  const { locale, slug } = await params;
-  if (!isLocale(locale)) notFound();
+  const { slug } = await params;
 
-  const [t, product] = await Promise.all([getDictionary(locale), getProduct(slug)]);
+  const [t, product] = await Promise.all([getDictionary(), getProduct(slug)]);
 
   // Renders the nearest not-found.tsx instead of crashing on `product.name`.
   if (!product) notFound();
@@ -57,7 +54,7 @@ export default async function ProductPage({ params }: PageProps) {
     <div className="bg-white">
       <div className="shell py-8 md:py-10">
         <Link
-          href={`/${locale}/products`}
+          href={`/products`}
           className="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-muted transition-colors hover:text-accent"
         >
           ← {t.detailBack}

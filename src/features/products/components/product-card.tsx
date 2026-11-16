@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { Dictionary } from "@/i18n/get-dictionary";
-import type { Locale } from "@/i18n/config";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
 
@@ -36,13 +35,11 @@ function truncateShortDescription(value: string): string {
  */
 export function ProductCard({
   product,
-  locale,
   t,
   priority = false,
   chips,
 }: {
   product: Product;
-  locale: Locale;
   t: Dictionary;
   priority?: boolean;
   /** Short spec pills (category / brand). Caller decides what's most useful in context. */
@@ -55,7 +52,7 @@ export function ProductCard({
 
   return (
     <Link
-      href={`/${locale}/products/${product.slug}`}
+      href={`/products/${product.slug}`}
       // `h-full` is what keeps a row of cards the same height. Grid and flex
       // both stretch the *cell*, but the card only grew to its own content,
       // so one two-line product name left its neighbours visibly short.

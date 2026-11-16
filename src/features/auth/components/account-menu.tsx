@@ -18,7 +18,7 @@ import { useAuthActions, useAuthStatus, useAuthUser } from "../store/auth.store"
  * to the current page; signed-in shoppers get their name and a small menu.
  */
 export function AccountMenu() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
   const status = useAuthStatus();
@@ -41,7 +41,7 @@ export function AccountMenu() {
   if (status !== "authenticated" || !user) {
     return (
       <Link
-        href={loginHref(locale, pathname)}
+        href={loginHref(pathname)}
         // Hidden, not absent, while unknown: the slot keeps its width so the
         // header does not shift when the session check comes back.
         className={cn(triggerClass, status === "unknown" && "invisible")}
@@ -82,7 +82,7 @@ export function AccountMenu() {
             <Link
               key={link.key}
               role="menuitem"
-              href={`/${locale}${link.path}`}
+              href={link.path}
               onClick={close}
               className="block px-4 py-2.5 text-[13.5px] text-ink-body transition-colors hover:bg-mist hover:text-accent"
             >

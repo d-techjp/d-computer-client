@@ -4,7 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useTransition } from "react";
 
 import { Pagination } from "@/components/ui/pagination";
-import type { Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils/cn";
 
 import type { ArticleListing } from "@/server/services/article.service";
@@ -17,10 +16,8 @@ import { ArticleCard } from "./article-card";
  */
 export function ArticleListBrowser({
   listing,
-  locale,
 }: {
   listing: ArticleListing;
-  locale: Locale;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,7 +39,7 @@ export function ArticleListBrowser({
     <div className={cn("transition-opacity duration-200", isPending && "opacity-50")}>
       <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 md:grid-cols-3 md:gap-[22px] lg:grid-cols-2 xl:grid-cols-3">
         {listing.articles.map((article) => (
-          <ArticleCard key={article.slug} article={article} locale={locale} />
+          <ArticleCard key={article.slug} article={article} />
         ))}
       </div>
 

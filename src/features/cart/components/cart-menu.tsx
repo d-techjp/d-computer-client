@@ -81,7 +81,7 @@ export function CartMenu() {
 
 /** The mobile bottom sheet — unchanged in behaviour from before the drawer existed. */
 function CartSheet({ onClose }: { onClose: () => void }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const lines = useCartLines();
   const count = useCartCount();
   const subtotal = useCartSubtotal();
@@ -143,7 +143,7 @@ function CartSheet({ onClose }: { onClose: () => void }) {
               </span>
             </div>
             <Link
-              href={`/${locale}/cart`}
+              href={`/cart`}
               onClick={onClose}
               className={buttonVariants({ size: "block" })}
             >
