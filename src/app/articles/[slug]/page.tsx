@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { articleImage } from "@/features/articles/types";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { formatDate } from "@/lib/format/date";
 import { getArticleBySlug } from "@/server/services/article.service";
+import { getPageBySlug } from "@/server/services/page.service";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -43,7 +44,13 @@ export default async function ArticlePage({ params }: PageProps) {
 
   const [t, article] = await Promise.all([getDictionary(), getArticleBySlug(slug)]);
 
-  if (!article) notFound();
+  if (!article) {
+    // Policy/about pages used to be written as articles. Once one is recreated as
+    // a static page with the same slug (and the article removed), its old URL —
+    // indexed, linked from the footer — moves permanently instead of breaking.
+    if (await getPageBySlug(slug)) permanentRedirect(`/${slug}`);
+    notFound();
+  }
 
   const meta = [
     article.publishedAt ? formatDate(article.publishedAt) : null,
