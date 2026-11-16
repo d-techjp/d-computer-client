@@ -96,11 +96,6 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
 
       <div className="shell flex flex-wrap items-center justify-between gap-2.5 border-t border-line-invert py-5 text-xs">
         <span>{t.copyright}</span>
-        {/* Hard-coded, not an admin footer link: payment providers (PayPay,
-            card networks) require this notice to be reachable from every page. */}
-        <Link href={`/tokushoho`} className={FOOTER_LINK_CLASS}>
-          {t.tokushohoTitle}
-        </Link>
       </div>
     </footer>
   );
