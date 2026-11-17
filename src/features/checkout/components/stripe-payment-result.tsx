@@ -11,7 +11,7 @@ import { useCartActions } from "@/features/cart/store/cart.store";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
 
-/** Card / PayPay settle within seconds; give the webhook ~20s before giving up. */
+/** Card / wallet payments settle within seconds; give the webhook ~20s before giving up. */
 const POLL_INTERVAL_MS = 2_000;
 const MAX_POLLS = 10;
 

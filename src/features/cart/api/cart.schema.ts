@@ -97,6 +97,11 @@ export const checkoutPreviewSchema = z.object({
   total: z.number(),
   shippingAddress: shippingAddressSchema,
   paymentMethods: z.array(paymentMethodSchema),
+  // Stripe types the shop has switched on (`card`, `paypay`, `alipay`…). Defaults
+  // to empty so an older backend without the field still parses.
+  stripePaymentMethodTypes: z.array(z.string()).default([]),
+  // Whether Japanese credit cards may pick an installment plan on Stripe.
+  stripeCardInstallments: z.boolean().default(false),
   canPlaceOrder: z.boolean(),
 });
 
@@ -156,7 +161,7 @@ export const orderStatusSchema = checkoutOrderSchema.shape.status;
 export const paymentStatusSchema = checkoutOrderSchema.shape.paymentStatus;
 
 /**
- * Card / PayPay go through Stripe Checkout: the backend creates the order
+ * Online payments (card, wallets, installments, PayPay…) go through Stripe Checkout: the backend creates the order
  * (awaiting payment, stock not yet taken) and hands back a hosted page URL.
  * `locale` picks both the Stripe page language and the return URL path.
  */

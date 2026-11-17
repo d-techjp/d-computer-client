@@ -32,6 +32,8 @@ import { toApiError } from "@/lib/api/errors";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
 
+import { stripeMethodLines } from "../lib/stripe-method-lines";
+
 type CheckoutStep = "address" | "review";
 
 type CheckoutFormState = {
@@ -636,9 +638,23 @@ function ReviewPanel({
             </label>
           ))}
         </div>
-        <p className="mt-3 border-l-2 border-[#D4AF37] bg-[#FFF8E8] px-3.5 py-3 text-[13px] leading-5 text-ink-body">
-          {paymentMethod === "stripe" ? t.checkoutStripeNote : t.checkoutPaymentNote}
-        </p>
+        <div className="mt-3 border-l-2 border-[#D4AF37] bg-[#FFF8E8] px-3.5 py-3 text-[13px] leading-5 text-ink-body">
+          {paymentMethod === "stripe" ? (
+            <>
+              <p>{t.checkoutStripeNote}</p>
+              <ul className="mt-1.5 list-disc space-y-0.5 pl-5">
+                {stripeMethodLines(
+                  preview.stripePaymentMethodTypes,
+                  preview.stripeCardInstallments,
+                ).map((key) => (
+                  <li key={key}>{t.checkoutStripeMethods[key]}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p>{t.checkoutPaymentNote}</p>
+          )}
+        </div>
       </fieldset>
 
       <ReadOnlyOrderItems items={preview.items} />
