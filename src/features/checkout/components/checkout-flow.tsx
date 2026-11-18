@@ -15,6 +15,9 @@ import {
   useCartSubtotal,
 } from "@/features/cart/store/cart.store";
 import { useCartHydrated } from "@/features/cart/store/use-cart-hydrated";
+import { createAddress } from "@/features/account/api/account.repository";
+import type { SavedAddress } from "@/features/account/api/account.schema";
+import { useAuthUser } from "@/features/auth/store/auth.store";
 import {
   placeOrder as placeCheckoutOrder,
   previewCheckout,
@@ -32,7 +35,10 @@ import { toApiError } from "@/lib/api/errors";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
 
+import { useSavedAddresses } from "../hooks/use-saved-addresses";
+import { loadCheckoutDraft, saveCheckoutDraft } from "../lib/checkout-draft";
 import { stripeMethodLines } from "../lib/stripe-method-lines";
+import { NEW_ADDRESS, SavedAddressPicker } from "./saved-address-picker";
 
 type CheckoutStep = "address" | "review";
 
@@ -72,13 +78,46 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
   const { refresh, discard } = useCartActions();
 
   const [step, setStep] = useState<CheckoutStep>("address");
-  const [form, setForm] = useState<CheckoutFormState>(EMPTY_FORM);
+  // Lazy: read the remembered draft once. On the server this is just `{}` —
+  // nothing from it renders there anyway (the skeleton shows until hydrated).
+  const [draft] = useState(loadCheckoutDraft);
+  const [form, setForm] = useState<CheckoutFormState>(() => ({
+    ...EMPTY_FORM,
+    ...draft,
+    orderNote: "",
+  }));
+  const [addressChoice, setAddressChoice] = useState<string | null>(draft.addressChoice ?? null);
+  const [saveAddress, setSaveAddress] = useState(true);
+  const { status: authStatus, addresses, reload: reloadAddresses } = useSavedAddresses();
+  const user = useAuthUser();
   const [preview, setPreview] = useState<CheckoutPreview | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [createdOrder, setCreatedOrder] = useState<CheckoutOrder | null>(null);
+
+  // Signed-in shoppers start from their profile for whatever the draft leaves
+  // empty. Adjusted during render (guarded by the user id), not in an effect.
+  const [prefilledFor, setPrefilledFor] = useState<string | null>(null);
+  if (user && prefilledFor !== user.id) {
+    setPrefilledFor(user.id);
+    setForm((current) => ({
+      ...current,
+      email: current.email || user.email || "",
+      fullName: current.fullName || user.fullName,
+      phone: current.phone || user.phone || "",
+    }));
+  }
+
+  const savedList = addresses ?? [];
+  const choice = resolveAddressChoice(savedList, addressChoice);
+  const selectedSaved = savedList.find((address) => address.id === choice) ?? null;
+  const usingNewAddress = choice === NEW_ADDRESS;
+
+  useEffect(() => {
+    saveCheckoutDraft({ ...form, addressChoice: choice });
+  }, [form, choice]);
 
   // Browser "back" from the Stripe page can restore this page from the
   // back/forward cache with the submit button still stuck on "redirecting".
@@ -108,12 +147,32 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
     );
   }
 
-  const shippingAddress = toShippingAddress(form);
+  const shippingAddress = toShippingAddress(selectedSaved ? withSavedAddress(form, selectedSaved) : form);
   const changeField =
     (field: keyof CheckoutFormState) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((current) => ({ ...current, [field]: event.target.value }));
     };
+
+  const canSaveMore = savedList.length < MAX_SAVED_ADDRESSES;
+  // Best effort, once the backend has accepted the address: a failure here
+  // (book full, network) must never stand between the shopper and the order.
+  const rememberAddress = (address: ShippingAddress) => {
+    createAddress({
+      fullName: address.fullName,
+      phone: address.phone,
+      province: address.province,
+      district: address.district ?? undefined,
+      ward: address.ward ?? undefined,
+      street: address.street,
+      ...(savedList.length === 0 ? { isDefault: true } : {}),
+    })
+      .then((created) => {
+        setAddressChoice(created.id);
+        void reloadAddresses();
+      })
+      .catch(() => undefined);
+  };
 
   const confirmAddress = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -125,6 +184,9 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
       const nextPreview = await previewCheckout(cartId, shippingAddress);
       setPreview(nextPreview);
       setPaymentMethod((current) => resolvePaymentMethod(nextPreview.paymentMethods, current));
+      if (authStatus === "authenticated" && usingNewAddress && saveAddress && canSaveMore) {
+        rememberAddress(nextPreview.shippingAddress);
+      }
       setForm((current) => ({
         ...current,
         fullName: nextPreview.shippingAddress.fullName,
@@ -240,25 +302,36 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
               </div>
 
               <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                <FormField
-                  name="fullName"
-                  label={t.checkoutFullName}
-                  value={form.fullName}
-                  onChange={changeField("fullName")}
-                  autoComplete="name"
-                  required
-                />
-                <FormField
-                  name="phone"
-                  label={t.checkoutPhone}
-                  value={form.phone}
-                  onChange={changeField("phone")}
-                  autoComplete="tel"
-                  inputMode="tel"
-                  minLength={9}
-                  maxLength={20}
-                  required
-                />
+                {authStatus === "authenticated" && savedList.length > 0 ? (
+                  <SavedAddressPicker
+                    addresses={savedList}
+                    value={choice}
+                    onChange={setAddressChoice}
+                  />
+                ) : null}
+                {usingNewAddress ? (
+                  <>
+                    <FormField
+                      name="fullName"
+                      label={t.checkoutFullName}
+                      value={form.fullName}
+                      onChange={changeField("fullName")}
+                      autoComplete="name"
+                      required
+                    />
+                    <FormField
+                      name="phone"
+                      label={t.checkoutPhone}
+                      value={form.phone}
+                      onChange={changeField("phone")}
+                      autoComplete="tel"
+                      inputMode="tel"
+                      minLength={9}
+                      maxLength={20}
+                      required
+                    />
+                  </>
+                ) : null}
                 <FormField
                   name="email"
                   type="email"
@@ -271,45 +344,60 @@ export function CheckoutFlow({ paymentCancelled = false }: { paymentCancelled?: 
                   required
                   className="sm:col-span-2"
                 />
-                <FormField
-                  name="province"
-                  label={t.checkoutProvince}
-                  value={form.province}
-                  onChange={changeField("province")}
-                  autoComplete="address-level1"
-                  minLength={2}
-                  maxLength={150}
-                  required
-                />
-                <FormField
-                  name="district"
-                  label={t.checkoutDistrict}
-                  optional={t.checkoutOptional}
-                  value={form.district}
-                  onChange={changeField("district")}
-                  autoComplete="address-level2"
-                  maxLength={150}
-                />
-                <FormField
-                  name="ward"
-                  label={t.checkoutWard}
-                  optional={t.checkoutOptional}
-                  value={form.ward}
-                  onChange={changeField("ward")}
-                  autoComplete="address-level3"
-                  maxLength={150}
-                />
-                <FormField
-                  name="street"
-                  label={t.checkoutStreet}
-                  value={form.street}
-                  onChange={changeField("street")}
-                  autoComplete="street-address"
-                  minLength={3}
-                  maxLength={255}
-                  required
-                  className="sm:col-span-2"
-                />
+                {usingNewAddress ? (
+                  <>
+                    <FormField
+                      name="province"
+                      label={t.checkoutProvince}
+                      value={form.province}
+                      onChange={changeField("province")}
+                      autoComplete="address-level1"
+                      minLength={2}
+                      maxLength={150}
+                      required
+                    />
+                    <FormField
+                      name="district"
+                      label={t.checkoutDistrict}
+                      optional={t.checkoutOptional}
+                      value={form.district}
+                      onChange={changeField("district")}
+                      autoComplete="address-level2"
+                      maxLength={150}
+                    />
+                    <FormField
+                      name="ward"
+                      label={t.checkoutWard}
+                      optional={t.checkoutOptional}
+                      value={form.ward}
+                      onChange={changeField("ward")}
+                      autoComplete="address-level3"
+                      maxLength={150}
+                    />
+                    <FormField
+                      name="street"
+                      label={t.checkoutStreet}
+                      value={form.street}
+                      onChange={changeField("street")}
+                      autoComplete="street-address"
+                      minLength={3}
+                      maxLength={255}
+                      required
+                      className="sm:col-span-2"
+                    />
+                    {authStatus === "authenticated" && canSaveMore ? (
+                      <label className="flex cursor-pointer items-center gap-2 text-[13px] sm:col-span-2">
+                        <input
+                          type="checkbox"
+                          checked={saveAddress}
+                          onChange={(event) => setSaveAddress(event.target.checked)}
+                          className="size-4 accent-[#C98B14]"
+                        />
+                        {t.checkoutSaveAddress}
+                      </label>
+                    ) : null}
+                  </>
+                ) : null}
                 <label className="sm:col-span-2">
                   <span className="mb-2 block text-[12.5px] font-bold">
                     {t.checkoutNote}
@@ -534,6 +622,34 @@ function toShippingAddress(form: CheckoutFormState): ShippingAddress {
 }
 
 /** Keeps the customer's choice while it is still offered; otherwise COD first. */
+const MAX_SAVED_ADDRESSES = 10;
+
+/**
+ * Which address the signed-in shopper is shipping to: their remembered pick if
+ * it still exists, otherwise the default one. No saved addresses (or a guest)
+ * always means the typed-in form.
+ */
+function resolveAddressChoice(addresses: SavedAddress[], remembered: string | null): string {
+  if (addresses.length === 0) return NEW_ADDRESS;
+  if (remembered === NEW_ADDRESS || addresses.some((address) => address.id === remembered)) {
+    return remembered as string;
+  }
+  return (addresses.find((address) => address.isDefault) ?? addresses[0]).id;
+}
+
+/** The form with its address fields taken from a saved address (email and note stay as typed). */
+function withSavedAddress(form: CheckoutFormState, address: SavedAddress): CheckoutFormState {
+  return {
+    ...form,
+    fullName: address.fullName,
+    phone: address.phone,
+    province: address.province,
+    district: address.district ?? "",
+    ward: address.ward ?? "",
+    street: address.street,
+  };
+}
+
 function resolvePaymentMethod(
   methods: PaymentMethod[],
   current: PaymentMethod | null = null,

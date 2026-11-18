@@ -121,6 +121,8 @@ const orderItemSchema = z.object({
   id: z.string().uuid(),
   variantId: z.string().uuid().nullable().optional(),
   productId: z.string().uuid().nullable().optional(),
+  // Set on a bundle's component rows (price 0, listed under the bundle).
+  parentItemId: z.string().uuid().nullable().optional(),
   productName: z.string(),
   variantName: z.string().nullable().optional(),
   sku: z.string(),
