@@ -28,7 +28,10 @@ export const footerColumnSchema = z.object({
 /** Public payload returned by `GET /site-settings`. */
 export const siteSettingsSchema = z.object({
   companyName: z.string(),
+  /** Mobile number. */
   phone: z.string(),
+  /** Main line; empty until the shop sets one in admin. */
+  hotline: z.string().default(""),
   address: z.string(),
   socialLinks: z.array(socialLinkSchema),
   footerColumns: z.array(footerColumnSchema),

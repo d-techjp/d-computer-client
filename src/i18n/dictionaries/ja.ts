@@ -14,6 +14,7 @@ const ja = {
   companyName: "ディーテック株式会社",
   address: "大阪市西成区玉出東１－３－１６ ドエル１番館103号",
   phone: "080-6473-2260",
+  phoneLabels: { hotline: "TEL", mobile: "携帯" },
   tagline: "パフォーマンスで、体験を変える。",
   navItems: [
     "ホーム",

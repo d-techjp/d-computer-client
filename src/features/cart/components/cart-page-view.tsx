@@ -18,12 +18,12 @@ import {
 } from "@/features/cart/store/cart.store";
 import { useCartHydrated } from "@/features/cart/store/use-cart-hydrated";
 import { useUiStore } from "@/features/layout/store/ui.store";
-import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
+import type { ShopPhone } from "@/features/layout/lib/shop-phones";
 import { useI18n } from "@/i18n/i18n-provider";
 import { formatPrice } from "@/lib/format/currency";
 import { cn } from "@/lib/utils/cn";
 
-export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
+export function CartPageView({ phones }: { phones: ShopPhone[] }) {
   const { t } = useI18n();
   const hydrated = useCartHydrated();
   const lines = useCartLines();
@@ -214,7 +214,7 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
             </Link>
           )}
           <a
-            href={`tel:${phone.replace(/-/g, "")}`}
+            href={phones[0]?.href}
             className={cn(
               buttonVariants({ variant: "outline", size: "block" }),
               "min-h-12 px-2 text-center leading-5",
@@ -230,7 +230,10 @@ export function CartPageView({ phone }: Pick<SiteSettings, "phone">) {
         ) : null}
 
         <p className="mt-4 text-center text-[11.5px] leading-5 text-ink-faint">
-          {t.checkoutContactHint.replace("{phone}", phone)}
+          {t.checkoutContactHint.replace(
+            "{phone}",
+            phones.map((item) => `${t.phoneLabels[item.kind]} ${item.number}`).join(" / "),
+          )}
         </p>
       </aside>
     </div>

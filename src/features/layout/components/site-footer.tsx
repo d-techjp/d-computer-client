@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { MapPinIcon, PhoneIcon } from "@/components/ui/icons";
 import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
+import { shopPhones } from "@/features/layout/lib/shop-phones";
 import { useReveal } from "@/hooks/use-reveal";
 import { useI18n } from "@/i18n/i18n-provider";
 
@@ -40,10 +41,13 @@ export function SiteFooter({ siteSettings }: { siteSettings: SiteSettings }) {
               <MapPinIcon className="mt-0.5 flex-none" />
               {siteSettings.address}
             </span>
-            <a href={`tel:${siteSettings.phone.replace(/-/g, "")}`} className="flex items-center gap-2 transition hover:text-accent hover:opacity-100">
-              <PhoneIcon className="flex-none" />
-              {siteSettings.phone}
-            </a>
+            {shopPhones(siteSettings).map((item) => (
+              <a key={item.kind} href={item.href} className="flex items-center gap-2 transition hover:text-accent hover:opacity-100">
+                <PhoneIcon className="flex-none" />
+                <span className="w-7 flex-none text-[11px] font-bold opacity-70">{t.phoneLabels[item.kind]}</span>
+                {item.number}
+              </a>
+            ))}
           </div>
           <div className="mt-[18px] flex gap-3">
             {siteSettings.socialLinks.map((social) => (

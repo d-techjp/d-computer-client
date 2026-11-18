@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CartPageView } from "@/features/cart/components/cart-page-view";
+import { shopPhones } from "@/features/layout/lib/shop-phones";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getSiteSettings } from "@/server/services/site-settings.service";
 
@@ -40,7 +41,7 @@ export default async function CartPage() {
           <h1 className="text-[28px] leading-tight font-black md:text-[38px]">{t.cartTitle}</h1>
         </header>
 
-        <CartPageView phone={siteSettings.phone} />
+        <CartPageView phones={shopPhones(siteSettings)} />
       </div>
     </div>
   );

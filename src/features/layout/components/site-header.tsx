@@ -8,6 +8,7 @@ import { AccountMenu } from "@/features/auth/components/account-menu";
 import { CartMenu } from "@/features/cart/components/cart-menu";
 import type { CategoryNode } from "@/features/catalog/tree";
 import type { SiteSettings } from "@/features/layout/api/site-settings.schema";
+import { shopPhones } from "@/features/layout/lib/shop-phones";
 import { ProductSearch } from "@/features/search/components/product-search";
 import { useCondensedHeader } from "@/hooks/use-condensed-header";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -43,7 +44,7 @@ export function SiteHeader({
 }: {
   t: Dictionary;
   categories: CategoryNode[];
-  siteSettings: Pick<SiteSettings, "companyName" | "phone">;
+  siteSettings: Pick<SiteSettings, "companyName" | "phone" | "hotline">;
 }) {
   const condensed = useCondensedHeader();
   const pathname = usePathname();
@@ -53,7 +54,7 @@ export function SiteHeader({
       <div className="site-header__main shell flex flex-nowrap items-center gap-3 py-3 md:gap-5 md:py-3.5">
         {/* Leads the row on touch, where the menu is the primary way into the
             catalogue and the left edge is where a thumb expects to find it. */}
-        <MobileNav categories={categories} phone={siteSettings.phone} />
+        <MobileNav categories={categories} phones={shopPhones(siteSettings)} />
 
         <Link href={"/"} className="flex min-w-0 flex-none items-center gap-2.5 md:gap-3.5">
           {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image processing */}

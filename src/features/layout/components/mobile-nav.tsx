@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { ChevronRightIcon, CloseIcon, MenuIcon, PhoneIcon } from "@/components/ui/icons";
 import { MobileAccountLinks } from "@/features/auth/components/mobile-account-links";
 import type { CategoryNode } from "@/features/catalog/tree";
+import type { ShopPhone } from "@/features/layout/lib/shop-phones";
 import { categoryHref } from "@/features/products/filters";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -27,7 +28,7 @@ import { useIsPanelOpen, useUiStore } from "../store/ui.store";
  * Here the same categories are `<details>` disclosures instead — tap to expand,
  * tap the heading to browse the whole branch.
  */
-export function MobileNav({ categories, phone }: { categories: CategoryNode[]; phone: string }) {
+export function MobileNav({ categories, phones }: { categories: CategoryNode[]; phones: ShopPhone[] }) {
   const { t } = useI18n();
   const pathname = usePathname();
 
@@ -105,13 +106,17 @@ export function MobileNav({ categories, phone }: { categories: CategoryNode[]; p
             <div className="mt-auto border-t border-line-soft px-5 py-4">
               <MobileAccountLinks onNavigate={close} />
 
-              <a
-                href={`tel:${phone.replace(/-/g, "")}`}
-                className="flex items-center gap-2 text-[13px] text-ink-muted transition-colors hover:text-accent"
-              >
-                <PhoneIcon />
-                {phone}
-              </a>
+              {phones.map((item) => (
+                <a
+                  key={item.kind}
+                  href={item.href}
+                  className="mt-1 flex items-center gap-2 py-1 text-[13px] text-ink-muted transition-colors hover:text-accent"
+                >
+                  <PhoneIcon />
+                  <span className="w-7 text-[11px] font-bold text-accent">{t.phoneLabels[item.kind]}</span>
+                  {item.number}
+                </a>
+              ))}
             </div>
           </nav>
         </div>

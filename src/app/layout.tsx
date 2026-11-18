@@ -10,6 +10,7 @@ import { SiteFooter } from "@/features/layout/components/site-footer";
 import { SiteHeader } from "@/features/layout/components/site-header";
 import { SocialBubbles } from "@/features/layout/components/social-bubbles";
 import { Topbar } from "@/features/layout/components/topbar";
+import { shopPhones } from "@/features/layout/lib/shop-phones";
 import { LOCALE } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { I18nProvider } from "@/i18n/i18n-provider";
@@ -73,7 +74,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* The dictionary is serialised into the client tree exactly once. */}
         <I18nProvider value={{ locale: LOCALE, t }}>
           <SiteChromeGate>
-            <Topbar t={t} phone={siteSettings.phone} />
+            <Topbar t={t} phones={shopPhones(siteSettings)} />
             <SiteHeader
               t={t}
              
